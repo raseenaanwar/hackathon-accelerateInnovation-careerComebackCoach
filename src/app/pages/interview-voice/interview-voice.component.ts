@@ -1,8 +1,8 @@
 import { Component, OnInit, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ElevenLabsService } from '../../core/services/elevenlabs.service';
-import { StorageService } from '../../core/services/storage.service';
+import { ElevenLabsService } from '@core/services/elevenlabs.service';
+import { StorageService } from '@core/services/storage.service';
 
 @Component({
     selector: 'app-interview-voice',
@@ -52,28 +52,29 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
                 : 'General tech interview practice for career comeback.';
 
             // Start ElevenLabs conversation
-            // await this.elevenLabsService.startConversation({
-            //     agentId: 'YOUR_AGENT_ID', // Replace with actual agent ID
-            //     context
-            // });
+            // Using a default Agent ID for hackathon demo purposes (replace with your own from ElevenLabs dashboard)
+            // This connects to the Conversational AI WebSocket
+            const agentId = 'YOUR_AGENT_ID_HERE';
 
-            // SIMULATION: Dummy AI Connection
-            // TODO: Replace this simulation with actual ElevenLabs service connection check.
-            // In a real production environment, you would await the actual connection response here.
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Fake connection delay
+            if (agentId === 'YOUR_AGENT_ID_HERE') {
+                console.warn('Authentication Warning: No Agent ID provided. Using simulation mode.');
+                // Fallback to simulation if no ID provided yet
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                this.isConnected.set(true);
+                this.connectionStatus.set('connected');
+                this.startDurationTimer();
+                return;
+            }
 
-            // Set state to Connected (Simulated)
+            await this.elevenLabsService.startConversation(agentId);
+
+            // Sync local signal with service signal
+            // In a real app we might just read the service signal directly in the template
+            // but for now keeping local state in sync
             this.isConnected.set(true);
             this.connectionStatus.set('connected');
             this.startDurationTimer();
-            console.log('Voice Interview: Simulated connection established.');
-
-            /* 
-               // REAL IMPLEMENTATION:
-               // await this.elevenLabsService.startConversation(...)
-               // this.isConnected.set(true);
-               // this.connectionStatus.set('connected');
-            */
+            console.log('Voice Interview: Connected to ElevenLabs Agent.');
 
         } catch (error: any) {
             // this.error.set(error.message || 'Failed to start voice interview');

@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { StorageService } from '../../core/services/storage.service';
+import { StorageService } from '@core/services/storage.service';
 
 interface FeedbackSection {
     title: string;
@@ -24,6 +24,10 @@ interface FeedbackSection {
 })
 export class FeedbackComponent {
     // Mock feedback data - in production this would come from AI analysis
+    // =================================================================
+    // DEMO DATA: Hardcoded feedback for preview purposes
+    // Replace this with real data from GeminiService in production
+    // =================================================================
     overallScore = signal<number>(78);
     feedbackSections = signal<FeedbackSection[]>([
         {

@@ -1,9 +1,9 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Roadmap } from '../../core/services/gemini.service';
-import { StorageService } from '../../core/services/storage.service';
-import { PdfService } from '../../core/services/pdf.service';
+import { Roadmap } from '@core/services/gemini.service';
+import { StorageService } from '@core/services/storage.service';
+import { PdfService } from '@core/services/pdf.service';
 
 @Component({
     selector: 'app-roadmap',

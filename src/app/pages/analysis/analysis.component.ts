@@ -1,8 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { GeminiService, SkillAnalysis, Roadmap } from '../../core/services/gemini.service';
-import { StorageService } from '../../core/services/storage.service';
+import { GeminiService, SkillAnalysis, Roadmap } from '@core/services/gemini.service';
+import { StorageService } from '@core/services/storage.service';
 
 @Component({
     selector: 'app-analysis',
