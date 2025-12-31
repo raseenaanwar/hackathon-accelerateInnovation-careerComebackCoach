@@ -1,0 +1,111 @@
+<div class="h-[100dvh] pt-24 pb-4 px-4 sm:px-6 lg:px-8 flex flex-col overflow-hidden">
+    <div class="max-w-5xl mx-auto w-full flex flex-col h-full">
+        <!-- Compact Header & Score (Fixed) -->
+        <div class="flex-none grid md:grid-cols-[1fr_auto] gap-4 items-center mb-4 animate-slide-up">
+            <div class="text-left">
+                <h1 class="text-2xl sm:text-3xl font-bold mb-1">
+                    Interview <span class="text-gradient">Complete!</span>
+                </h1>
+                <p class="text-sm text-[hsl(var(--color-text-secondary))] line-clamp-1">
+                    Here's your performance analysis breakdown.
+                </p>
+            </div>
+
+            <!-- Score Badge -->
+            <div class="flex items-center gap-4 p-3 rounded-xl glassmorphism self-center">
+                <div class="text-right">
+                    <div class="text-xs text-[hsl(var(--color-text-muted))] uppercase tracking-wider">Overall</div>
+                    <div class="text-xs font-medium text-[hsl(var(--color-success))]">Great Job!</div>
+                </div>
+                <div class="text-3xl font-bold text-gradient leading-none">{{ overallScore() }}%</div>
+            </div>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 pb-2">
+            <!-- Feedback Cards -->
+            <div *ngFor="let section of feedbackSections()" class="p-4 rounded-xl glassmorphism animate-slide-up">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-semibold">{{ section.title }}</h3>
+                    <div class="flex items-center gap-3">
+                        <div class="w-24 h-2 rounded-full bg-[hsl(var(--color-bg-overlay))]">
+                            <div class="h-2 rounded-full bg-gradient-to-r to-[hsl(var(--color-primary))] transition-all duration-500"
+                                [class]="getProgressColor(section.score)"
+                                [style.width.%]="(section.score / section.maxScore) * 100"></div>
+                        </div>
+                        <span class="text-sm font-bold" [class]="getScoreColor(section.score)">
+                            {{ section.score }}/{{ section.maxScore }}
+                        </span>
+                    </div>
+                </div>
+
+                <p class="text-xs sm:text-sm text-[hsl(var(--color-text-secondary))] mb-3">{{ section.feedback }}</p>
+
+                <!-- 2-Col Grid -->
+                <div class="grid md:grid-cols-2 gap-4 text-xs">
+                    <!-- Highlights -->
+                    <div class="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                        <h4 class="font-semibold mb-2 flex items-center text-[hsl(var(--color-success))]">
+                            <span class="mr-1">👍</span> Strengths
+                        </h4>
+                        <ul class="space-y-1">
+                            <li *ngFor="let highlight of section.highlights"
+                                class="flex items-start text-[hsl(var(--color-text-secondary))]">
+                                <span class="text-[hsl(var(--color-success))] mr-1.5">•</span>
+                                <span>{{ highlight }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Improvements -->
+                    <div class="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                        <h4 class="font-semibold mb-2 flex items-center text-[hsl(var(--color-warning))]">
+                            <span class="mr-1">💡</span> To Improve
+                        </h4>
+                        <ul class="space-y-1">
+                            <li *ngFor="let improvement of section.improvements"
+                                class="flex items-start text-[hsl(var(--color-text-secondary))]">
+                                <span class="text-[hsl(var(--color-warning))] mr-1.5">•</span>
+                                <span>{{ improvement }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compact Steps -->
+            <div
+                class="p-4 rounded-xl border border-[hsl(var(--color-primary))] bg-gradient-to-r from-[hsl(var(--color-primary))]/5 to-[hsl(var(--color-secondary))]/5">
+                <h3 class="text-sm font-semibold mb-2 flex items-center">
+                    <span class="mr-2">🚀</span> Recommended Next Steps
+                </h3>
+                <div class="flex flex-col sm:flex-row gap-2 text-xs sm:text-sm text-[hsl(var(--color-text-secondary))]">
+                    <div class="flex-1 flex gap-2">
+                        <span class="font-bold text-[hsl(var(--color-primary))]">1.</span>
+                        <span>Review roadmap & focus on weak areas.</span>
+                    </div>
+                    <div class="flex-1 flex gap-2">
+                        <span class="font-bold text-[hsl(var(--color-primary))]">2.</span>
+                        <span>Practice specific scenarios again.</span>
+                    </div>
+                    <div class="flex-1 flex gap-2">
+                        <span class="font-bold text-[hsl(var(--color-primary))]">3.</span>
+                        <span>Apply learnings to real projects.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compact Actions (Fixed) -->
+        <div class="flex-none pt-3 flex flex-row gap-3 justify-end border-t border-[hsl(var(--color-border))] mt-2">
+            <button (click)="retakeInterview()"
+                class="px-4 py-2 rounded-lg font-medium border border-[hsl(var(--color-primary))] text-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))] hover:text-white transition-all text-xs sm:text-sm">
+                Retake
+            </button>
+            <button (click)="backToRoadmap()"
+                class="px-5 py-2 rounded-lg font-medium text-white bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] hover:shadow-md transition-all text-xs sm:text-sm">
+                Back to Roadmap
+            </button>
+        </div>
+    </div>
+</div>

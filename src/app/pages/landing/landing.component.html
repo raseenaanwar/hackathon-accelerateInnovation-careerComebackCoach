@@ -1,0 +1,131 @@
+<div class="relative overflow-hidden flex-grow flex flex-col">
+    <!-- Animated Background Gradient -->
+    <div class="absolute inset-0 -z-10">
+        <div
+            class="absolute top-0 left-1/4 w-64 h-64 bg-[hsl(var(--color-primary))] rounded-full opacity-20 blur-3xl animate-pulse">
+        </div>
+        <div class="absolute top-1/4 left-[40%] w-64 h-64 bg-[hsl(var(--color-accent))] rounded-full opacity-30 blur-3xl animate-pulse"
+            style="animation-delay: 1.5s;"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section
+        class="relative min-h-[100dvh] flex flex-col items-center justify-center pt-20 pb-8 px-4 sm:px-6 lg:px-8 overflow-hidden snap-start">
+
+        <div
+            class="max-w-4xl mx-auto text-center animate-slide-up flex flex-col items-center gap-8 transition-transform duration-500">
+            <!-- Badge -->
+            <div
+                class="inline-flex items-center px-4 py-2 rounded-full glassmorphism border border-[hsl(var(--color-text-muted))/0.3] shadow-md">
+                <span
+                    class="text-sm font-medium bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] bg-clip-text text-transparent">
+                    ✨ AI-Powered Career Mentorship
+                </span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
+                Your <span
+                    class="text-gradient drop-shadow-sm [-webkit-text-stroke:1.5px_rgba(0,0,0,0.8)] dark:[-webkit-text-stroke:1.5px_rgba(255,255,255,0.8)] py-1">Comeback</span><br>Starts
+                Here
+            </h1>
+
+            <!-- Subheadline -->
+            <p class="text-lg sm:text-xl text-[hsl(var(--color-text-secondary))] max-w-2xl mx-auto leading-relaxed">
+                Transform career gaps into growth opportunities. Get personalized roadmaps, skill assessments,
+                and AI-powered interview practice—built for women returning to tech.
+            </p>
+
+            <!-- CTA Button -->
+            <button (click)="navigateToResume()"
+                class="group relative inline-flex items-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] rounded-xl shadow-lg hover:shadow-xl hover:shadow-[hsl(var(--color-primary)/0.2)] ring-1 ring-black/5 dark:ring-white/10 transition-all duration-[var(--duration-base)] hover:scale-105 z-10">
+                Start Your Journey
+                <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-[var(--duration-base)]"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </button>
+
+            <!-- Stats -->
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-8 w-full max-w-2xl">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-gradient mb-1">AI-Driven</div>
+                    <p class="text-sm font-medium text-[hsl(var(--color-text-muted))]">Resume Analysis</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-gradient mb-1">Custom</div>
+                    <p class="text-sm font-medium text-[hsl(var(--color-text-muted))]">Roadmap Duration</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-gradient mb-1">Voice Ready</div>
+                    <p class="text-sm font-medium text-[hsl(var(--color-text-muted))]">Interview Practice</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission & Tech Section -->
+    <section
+        class="relative min-h-[100dvh] flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 overflow-hidden snap-start">
+        <!-- Connecting Line/Gradient -->
+        <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-[hsl(var(--color-border))] to-transparent">
+        </div>
+
+        <div class="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+            <!-- Left: Content -->
+            <div class="space-y-8 animate-slide-up order-1 text-center lg:text-left">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[hsl(var(--color-primary))/0.1] border border-[hsl(var(--color-primary))/0.2] self-center lg:self-start">
+                    <span class="text-lg">⚡</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-[hsl(var(--color-primary))]">Built with
+                        Gemini 3 Pro</span>
+                </div>
+
+                <h2 class="text-3xl md:text-5xl font-bold leading-tight">
+                    Bridging the Gap for <br><span class="text-gradient">Women in Tech</span>
+                </h2>
+
+                <div class="space-y-6 text-lg text-[hsl(var(--color-text-secondary))] leading-relaxed">
+                    <p>
+                        <span class="font-semibold text-[hsl(var(--color-text-primary))]">Career Comeback Coach</span>
+                        is a multimodal AI-powered platform designed to empower women returning to the workforce.
+                    </p>
+                    <p>
+                        Whether it's maternity, caregiving, or relocation—career gaps shouldn't define your potential.
+                        Our AI analyzes your unique background to build a bridge back to your dream role, updating your
+                        skills and rebuilding your confidence.
+                    </p>
+                </div>
+
+                <p class="text-sm text-[hsl(var(--color-text-muted))] pt-4 opacity-75 italic">
+                    "While designed with women's unique challenges in mind, our tools are powerful for anyone navigating
+                    a career return."
+                </p>
+            </div>
+
+            <!-- Right: Visual -->
+            <div class="relative order-2 animate-fade-in group">
+                <!-- Background Glow -->
+                <div
+                    class="absolute inset-0 -z-10 bg-gradient-to-tr from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] rounded-full blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity duration-700">
+                </div>
+
+                <!-- Imagine Container -->
+                <div
+                    class="relative rounded-3xl overflow-hidden shadow-2xl border border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-elevated))] aspect-video w-full h-auto lg:max-h-[500px] group-hover:border-[hsl(var(--color-primary))/0.3] transition-all duration-500">
+                    <img src="/assets/images/mission-hero.png" alt="Empowering Women in Tech Illustration"
+                        class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000">
+
+                    <!-- Overlay Gradient to blend with bg -->
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-[hsl(var(--color-bg-base))] via-transparent to-transparent opacity-60">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>

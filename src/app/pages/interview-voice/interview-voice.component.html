@@ -1,0 +1,143 @@
+<div
+    class="h-[100dvh] pt-20 pb-4 px-4 flex flex-col items-center justify-center overflow-hidden relative bg-[hsl(var(--color-bg-base))]">
+    <!-- Error Overlay -->
+    <div *ngIf="error()"
+        class="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
+        <div
+            class="glassmorphism p-6 rounded-2xl max-w-md w-full border border-[hsl(var(--color-error))/0.3] shadow-2xl">
+            <div class="flex items-center gap-3 mb-3 text-[hsl(var(--color-error))]">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h3 class="text-lg font-bold">Connection Error</h3>
+            </div>
+            <p class="text-[hsl(var(--color-text-secondary))] mb-6 text-sm leading-relaxed">{{ error() }}</p>
+            <button (click)="router.navigate(['/interview/setup'])"
+                class="w-full px-4 py-2.5 rounded-xl bg-[hsl(var(--color-error))] text-white font-medium hover:opacity-90 transition-all active:scale-95 shadow-lg">
+                Return to Setup
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Interface (Compact Box) -->
+    <div class="w-full max-w-4xl h-full max-h-[500px] flex flex-col md:flex-row gap-4 relative z-10 animate-fade-in">
+
+        <!-- Column 1: Interviewer Avatar -->
+        <div
+            class="flex-1 md:flex-[0.7] relative rounded-2xl overflow-hidden glassmorphism border border-[hsl(var(--color-border))] shadow-lg flex items-center justify-center bg-black/5 group">
+            <!-- Image -->
+            <img src="assets/images/interviewer.png" alt="Interviewer"
+                class="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform duration-[2s] group-hover:scale-105">
+
+            <!-- Floating connection status -->
+            <div
+                class="absolute top-3 left-3 flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-[10px] font-medium z-20">
+                <div class="w-1.5 h-1.5 rounded-full" [class.bg-green-500]="isConnected()" [class.bg-red-500]="error()"
+                    [class.bg-yellow-500]="!isConnected() && !error()"
+                    [class.animate-pulse]="!isConnected() && !error()"></div>
+                <span>{{ isConnected() ? 'Online' : (error() ? 'Offline' : 'Connecting...') }}</span>
+            </div>
+
+            <!-- Speaking Overlay -->
+            <div *ngIf="isSpeaking()"
+                class="absolute inset-0 border-[4px] border-[hsl(var(--color-secondary))/0.5] z-20 animate-pulse pointer-events-none rounded-2xl box-border">
+            </div>
+
+            <!-- Subtitles/Status Overlay (Bottom of Image) -->
+            <div class="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/80 to-transparent z-20">
+                <div *ngIf="isSpeaking()" class="flex items-center gap-2 text-white/90">
+                    <span class="text-xl">🔊</span>
+                    <span class="text-xs font-medium tracking-wide animate-pulse">Sarah is speaking...</span>
+                </div>
+                <div *ngIf="isListening()" class="flex items-center gap-2 text-white/90">
+                    <div class="flex gap-0.5 h-2.5 items-end">
+                        <div class="w-0.5 bg-white animate-[bounce_1s_infinite] h-full"></div>
+                        <div class="w-0.5 bg-white animate-[bounce_1.1s_infinite] h-2/3"></div>
+                        <div class="w-0.5 bg-white animate-[bounce_1.2s_infinite] h-full"></div>
+                    </div>
+                    <span class="text-xs font-medium tracking-wide">Listening to you...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Controls & Feedback -->
+        <div class="flex-none md:flex-1 flex flex-col gap-3 min-h-0">
+            <!-- Status / Timer Card -->
+            <div
+                class="flex-none p-3 rounded-2xl glassmorphism border border-[hsl(var(--color-border))] flex justify-between items-center shadow-sm">
+                <div>
+                    <h2
+                        class="text-[10px] uppercase font-bold text-[hsl(var(--color-text-muted))] mb-0.5 tracking-wider">
+                        Duration
+                    </h2>
+                    <div class="text-xl font-mono font-bold text-gradient tracking-tight">{{ formatDuration(duration())
+                        }}</div>
+                </div>
+                <div class="text-right">
+                    <div
+                        class="text-[10px] uppercase font-bold text-[hsl(var(--color-text-muted))] tracking-wider mb-1">
+                        Status</div>
+                    <div class="inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide"
+                        [class.bg-[hsl(var(--color-primary))/0.1]]="isListening()"
+                        [class.text-[hsl(var(--color-primary))]]="isListening()"
+                        [class.bg-[hsl(var(--color-secondary))/0.1]]="isSpeaking()"
+                        [class.text-[hsl(var(--color-secondary))]]="isSpeaking()"
+                        [class.bg-[hsl(var(--color-bg-elevated))]]="!isListening() && !isSpeaking()"
+                        [class.text-[hsl(var(--color-text-muted))]]="!isListening() && !isSpeaking()">
+                        {{ isListening() ? 'Listening' : (isSpeaking() ? 'Speaking' : 'Idle') }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualizer (Compact & Interactive) -->
+            <div class="flex-1 rounded-2xl glassmorphism border border-[hsl(var(--color-border))] flex items-center justify-center relative p-2 cursor-pointer group shadow-sm transition-all hover:border-[hsl(var(--color-primary))/0.5]"
+                (click)="toggleListening()">
+                <div
+                    class="absolute top-2 inset-x-0 text-center text-[10px] text-[hsl(var(--color-text-muted))] opacity-60 group-hover:opacity-100 transition-opacity uppercase tracking-widest font-medium">
+                    Tap to Toggle Mic
+                </div>
+
+                <!-- Orb -->
+                <div class="relative w-24 h-24 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] rounded-full blur-xl opacity-10 group-hover:opacity-30 transition-opacity duration-500"
+                        [class.opacity-50]="isListening()"></div>
+
+                    <!-- Main Button Circle -->
+                    <div class="relative w-16 h-16 rounded-full bg-[hsl(var(--color-bg-elevated))] border-2 flex items-center justify-center transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.05)] group-hover:scale-105 group-active:scale-95 z-10"
+                        [class.border-[hsl(var(--color-primary))]]="isListening()"
+                        [class.border-[hsl(var(--color-border))]]="!isListening()"
+                        [class.shadow-[0_0_20px_hsl(var(--color-primary)/0.3)]]="isListening()">
+
+                        <!-- Mic Icon -->
+                        <svg *ngIf="isListening()" class="w-6 h-6 text-[hsl(var(--color-primary))]" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                        <svg *ngIf="!isListening()" class="w-6 h-6 text-[hsl(var(--color-text-muted))]" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                    </div>
+
+                    <!-- Ripple Rings -->
+                    <div *ngIf="isListening()"
+                        class="absolute inset-0 rounded-full border border-[hsl(var(--color-primary))/0.4] animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite]">
+                    </div>
+                    <div *ngIf="isListening()"
+                        class="absolute inset-2 rounded-full border border-[hsl(var(--color-primary))/0.2] animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite]"
+                        style="animation-delay: 0.3s"></div>
+                </div>
+            </div>
+
+            <!-- End Button -->
+            <button (click)="endInterview()"
+                class="flex-none w-full py-3 rounded-xl border border-[hsl(var(--color-error))] text-[hsl(var(--color-error))] font-semibold hover:bg-[hsl(var(--color-error))] hover:text-white transition-all active:scale-95 shadow-sm hover:shadow-md text-xs uppercase tracking-wide">
+                End Session
+            </button>
+        </div>
+    </div>
+</div>
