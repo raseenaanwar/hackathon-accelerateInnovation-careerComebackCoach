@@ -69,6 +69,9 @@ export class ResumeInputComponent {
             return;
         }
 
+        // Clear previous session data to start fresh
+        this.storageService.clearSession();
+
         // Store resume data
         this.storageService.updateSession({
             resumeData: resumeText,

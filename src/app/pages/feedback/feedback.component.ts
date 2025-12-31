@@ -96,7 +96,6 @@ export class FeedbackComponent {
     }
 
     backToRoadmap(): void {
-        this.storageService.clearSession();
         this.router.navigate(['/roadmap']);
     }
 

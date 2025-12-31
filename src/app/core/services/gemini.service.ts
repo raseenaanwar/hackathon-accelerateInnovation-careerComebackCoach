@@ -23,6 +23,8 @@ export interface Roadmap {
   weeks: RoadmapWeek[];
   overallGoal: string;
   estimatedHours: number;
+  source?: string;
+  restoredFrom?: string;
 }
 
 @Injectable({

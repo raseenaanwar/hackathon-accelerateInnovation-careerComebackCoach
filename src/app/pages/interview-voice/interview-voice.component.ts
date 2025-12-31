@@ -20,7 +20,7 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
     isListening = signal<boolean>(false);
     isSpeaking = signal<boolean>(false);
     audioLevel = signal<number>(0);
-    duration = signal<number>(0);
+    duration = signal<number>(60); // 1 minute countdown
     error = signal<string | null>(null);
 
     private durationInterval?: any;
@@ -57,17 +57,23 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
             //     context
             // });
 
-            // SIMULATION: AI Not Connected (Offline mode per request)
-            // In a real scenario, this would wait for the service connection
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Fake delay
+            // SIMULATION: Dummy AI Connection
+            // TODO: Replace this simulation with actual ElevenLabs service connection check.
+            // In a real production environment, you would await the actual connection response here.
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Fake connection delay
 
-            // Force offline for now as requested
-            throw new Error('AI Service Unavailable');
+            // Set state to Connected (Simulated)
+            this.isConnected.set(true);
+            this.connectionStatus.set('connected');
+            this.startDurationTimer();
+            console.log('Voice Interview: Simulated connection established.');
 
-            // Success path (commented out for now)
-            // this.isConnected.set(true);
-            // this.connectionStatus.set('connected');
-            // this.startDurationTimer();
+            /* 
+               // REAL IMPLEMENTATION:
+               // await this.elevenLabsService.startConversation(...)
+               // this.isConnected.set(true);
+               // this.connectionStatus.set('connected');
+            */
 
         } catch (error: any) {
             // this.error.set(error.message || 'Failed to start voice interview');
@@ -79,7 +85,11 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
 
     private startDurationTimer(): void {
         this.durationInterval = setInterval(() => {
-            this.duration.set(this.duration() + 1);
+            if (this.duration() > 0) {
+                this.duration.set(this.duration() - 1);
+            } else {
+                this.endInterview();
+            }
         }, 1000);
     }
 

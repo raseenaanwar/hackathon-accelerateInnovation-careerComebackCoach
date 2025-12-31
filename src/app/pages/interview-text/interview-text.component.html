@@ -14,7 +14,7 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                         <span>Online</span>
                         <span>•</span>
-                        <span>{{ formatDuration(duration()) }}</span>
+                        <span>Time Left: {{ formatDuration(duration()) }}</span>
                     </div>
                 </div>
             </div>
@@ -29,14 +29,16 @@
     <div #messagesContainer class="flex-1 overflow-y-auto px-4 py-4 [&::-webkit-scrollbar]:hidden"
         style="scrollbar-width: none; -ms-overflow-style: none;">
         <div class="max-w-3xl mx-auto space-y-4">
-            <div *ngFor="let message of messages()" [class.justify-end]="message.role === 'user'"
-                class="flex animate-fade-in group">
+            @for (message of messages(); track message.timestamp) {
+            <div [class.justify-end]="message.role === 'user'" class="flex animate-fade-in group">
 
                 <!-- AI Avatar (only for assistant messages) -->
-                <div *ngIf="message.role === 'assistant'"
+                @if (message.role === 'assistant') {
+                <div
                     class="w-6 h-6 rounded-full bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold mt-1 mr-2 opacity-100 transition-opacity">
                     AI
                 </div>
+                }
 
                 <!-- Message Bubble -->
                 <div [class.bg-[hsl(var(--color-bg-elevated))]]="message.role === 'user'"
@@ -57,9 +59,11 @@
                     </div>
                 </div>
             </div>
+            }
 
             <!-- Typing Indicator -->
-            <div *ngIf="isTyping()" class="flex animate-fade-in">
+            @if (isTyping()) {
+            <div class="flex animate-fade-in">
                 <div
                     class="w-6 h-6 rounded-full bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold mt-1 mr-2">
                     AI
@@ -76,6 +80,7 @@
                     </div>
                 </div>
             </div>
+            }
         </div>
     </div>
 

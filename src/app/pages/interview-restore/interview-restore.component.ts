@@ -86,11 +86,39 @@ export class InterviewRestoreComponent {
     // Simulate processing delay and restoring session
     // In a real app, this would send the PDF to backend to parse/extract roadmap data
     setTimeout(() => {
-      // Mock successful restoration
-      // We'll set a flag in storage so the app knows we have context
+      // Mock successful restoration with full roadmap data
       this.storageService.updateSession({
         hasActiveSession: true,
-        roadmapData: { restoredFrom: file.name, timestamp: new Date().toISOString() }, // Minimal context
+        roadmapData: {
+          overallGoal: 'Restored Roadmap: ' + file.name.replace('.pdf', ''),
+          estimatedHours: 120,
+          weeks: [
+            {
+              week: 1,
+              title: 'Foundation Refresher',
+              goals: ['Assess current skill gaps', 'Review modern web standards'],
+              topics: ['ES6+ JavaScript', 'Semantic HTML5', 'CSS Grid/Flexbox'],
+              resources: ['MDN Web Docs', 'Frontend Masters'],
+              projects: ['Portfolio Site Refresh']
+            },
+            {
+              week: 2,
+              title: 'Framework Mastery',
+              goals: ['Build complex components', 'State management patterns'],
+              topics: ['Angular Signals', 'RxJS', 'TypeScript Advanced Types'],
+              resources: ['Angular.dev', 'RxJS Visualizer'],
+              projects: ['Task Management App']
+            },
+            {
+              week: 3,
+              title: 'Interview Prep',
+              goals: ['Conduct mock interviews', 'Refine soft skills'],
+              topics: ['Behavioral Questions', 'System Design Basics'],
+              resources: ['LeetCode', 'System Design Primer'],
+              projects: ['Mock Interview Sessions']
+            }
+          ]
+        },
         currentStep: 'interview'
       });
 
