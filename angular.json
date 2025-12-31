@@ -28,7 +28,16 @@
             "outputMode": "server",
             "ssr": {
               "entry": "src/server.ts"
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "https-proxy-agent",
+              "fetch-blob",
+              "google-auth-library",
+              "web-streams-polyfill",
+              "debug",
+              "agent-base",
+              "node-domexception"
+            ]
           },
           "configurations": {
             "production": {
