@@ -2,8 +2,9 @@ import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked } fr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { GeminiService } from '../../core/services/gemini.service';
-import { StorageService } from '../../core/services/storage.service';
+import { GeminiService } from '@core/services/gemini.service';
+import { StorageService } from '@core/services/storage.service';
+import { ElevenLabsService } from '@core/services/elevenlabs.service';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -35,7 +36,8 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
     constructor(
         private router: Router,
         private geminiService: GeminiService,
-        private storageService: StorageService
+        private storageService: StorageService,
+        private elevenLabsService: ElevenLabsService
     ) { }
 
     async ngOnInit(): Promise<void> {
@@ -120,9 +122,26 @@ Your response:`;
 
             const result = await this.geminiService.analyzeResume(prompt);
             // Mock response for now since analyzeResume returns SkillAnalysis
+            // In a real implementation this would come from `result` if analyzeResume supported generic prompts properly, 
+            // or we'd add a separate method in GeminiService for chat.
             const response = "That's great! Can you tell me more about a challenging technical problem you solved in your previous role?";
 
             this.addMessage('assistant', response);
+
+            // Text-to-Speech playback (ElevenLabs)
+            try {
+                // We don't block the UI for this, just play it when ready
+                const audioUrl = await this.elevenLabsService.textToSpeech(response);
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    audio.play().catch(e => console.warn('Audio play blocked/failed:', e));
+                } else {
+                    // DEMO MODE: No audio returned
+                    console.log('Demo Mode: TTS simulated (no audio played).');
+                }
+            } catch (err) {
+                console.warn('TTS playback failed:', err);
+            }
         } catch (error) {
             console.error('Error getting AI response:', error);
             this.addMessage('assistant', 'I apologize, I had trouble processing that. Could you rephrase your response?');

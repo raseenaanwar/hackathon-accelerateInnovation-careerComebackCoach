@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { StorageService } from '../../core/services/storage.service';
+import { StorageService } from '@core/services/storage.service';
 
 @Component({
   selector: 'app-interview-restore',

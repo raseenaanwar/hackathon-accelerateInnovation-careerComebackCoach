@@ -125,54 +125,62 @@ Focus on modern, in-demand technologies. Use real-time resources. Return ONLY va
     }
   }
 
-  // Fallback mock data
+  // =========================================================================
+  // DEMO DATA METHODS
+  // Replace these with actual API error handling or remove in production
+  // =========================================================================
+
   private getMockAnalysis(): SkillAnalysis {
+    console.log('Using DEMO Skill Analysis Data');
+    // DEMO DATA: Mock analysis result
     return {
-      currentSkills: ['JavaScript', 'HTML', 'CSS', 'React (Basic)'],
-      outdatedSkills: ['jQuery', 'AngularJS', 'Bootstrap 3'],
-      skillGaps: ['TypeScript', 'Modern React Hooks', 'State Management', 'Testing'],
-      suggestedRoles: ['Frontend Developer', 'Full-Stack Developer', 'UI Engineer'],
-      strengthAreas: ['Web fundamentals', 'Problem solving', 'User empathy'],
-      improvementAreas: ['Modern frameworks', 'Cloud platforms', 'DevOps basics']
+      currentSkills: ['JavaScript ES5', 'HTML5', 'CSS3', 'Basic React', 'Git'],
+      outdatedSkills: ['jQuery', 'Bootstrap 3', 'Float-based layouts', 'AngularJS 1.x'],
+      skillGaps: ['TypeScript', 'Modern React (Hooks, Next.js)', 'Tailwind CSS', 'State Management (Redux/Zustand)', 'CI/CD Basics'],
+      suggestedRoles: ['Frontend Developer', 'UI Engineer', 'Junior Full Stack Developer'],
+      strengthAreas: ['Strong understanding of web fundamentals', 'Experience with version control', 'Problem-solving mindset'],
+      improvementAreas: ['Modern framework ecosystems', 'Type safety (TypeScript)', 'Responsive design patterns']
     };
   }
 
   private getMockRoadmap(): Roadmap {
+    console.log('Using DEMO Roadmap Data');
+    // DEMO DATA: Mock roadmap result
     return {
-      overallGoal: 'Transition to a modern frontend development role',
-      estimatedHours: 80,
+      overallGoal: 'Modern Frontend Developer Career Comeback',
+      estimatedHours: 120,
       weeks: [
         {
           week: 1,
-          title: 'Modern JavaScript & TypeScript Foundations',
-          goals: ['Master ES6+ features', 'Learn TypeScript basics'],
-          topics: ['Arrow functions', 'Async/await', 'TypeScript types'],
-          resources: ['MDN Web Docs', 'TypeScript Handbook'],
-          projects: ['Build a TypeScript utility library']
+          title: 'Foundation Refresher & Modern Standards',
+          goals: ['Transition from ES5 to ES6+', 'Master semantic HTML', 'Understand modern CSS layouts'],
+          topics: ['Arrow Functions & Destructuring', 'Flexbox & CSS Grid', 'Semantic Web'],
+          resources: ['MDN Web Docs', 'JavaScript.info', 'CSS-Tricks Flexbox Guide'],
+          projects: ['Refactor a legacy landing page to semantic HTML & Flexbox']
         },
         {
           week: 2,
-          title: 'React Ecosystem Deep Dive',
-          goals: ['Master React Hooks', 'Learn state management'],
-          topics: ['useState, useEffect', 'Context API', 'Custom hooks'],
-          resources: ['React Official Docs', 'React Hooks Tutorial'],
-          projects: ['Build a task management app with hooks']
+          title: 'TypeScript & Modern React',
+          goals: ['Understand Type Safety', 'Learn Functional Components', 'Master Hooks'],
+          topics: ['TypeScript Interfaces & Types', 'React useState & useEffect', 'Component Lifecycle'],
+          resources: ['TypeScript Official Handbook', 'React.dev'],
+          projects: ['Build a specialized Todo App with TypeScript and Hooks']
         },
         {
           week: 3,
-          title: 'Testing & Best Practices',
-          goals: ['Learn testing fundamentals', 'Write clean code'],
-          topics: ['Jest', 'React Testing Library', 'Code patterns'],
-          resources: ['Testing JavaScript', 'Clean Code principles'],
-          projects: ['Add tests to your existing projects']
+          title: 'State Management & Styling',
+          goals: ['Manage complex application state', 'Implement modern styling'],
+          topics: ['Context API vs Redux', 'Tailwind CSS Fundamentals', 'Responsive Design'],
+          resources: ['Tailwind CSS Docs', 'Redux Toolkit Quick Start'],
+          projects: ['Create a Weather Dashboard using public API and Tailwind']
         },
         {
           week: 4,
-          title: 'Portfolio & Interview Prep',
-          goals: ['Build portfolio', 'Practice interviews'],
-          topics: ['GitHub best practices', 'Technical communication'],
-          resources: ['Portfolio examples', 'Interview prep sites'],
-          projects: ['Deploy 3 projects to portfolio']
+          title: 'Deployments & Professional Practices',
+          goals: ['Learn CI/CD pipelines', 'Polish portfolio', 'Mock interviews'],
+          topics: ['Git branching strategies', 'Vercel/Netlify Deployment', 'Code Review Etiquette'],
+          resources: ['GitHub Actions Docs', 'Vercel Deployment Guide'],
+          projects: ['Deploy your Portfolio and Weather App']
         }
       ]
     };
