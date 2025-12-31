@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import jsPDF from 'jspdf';
 import { Roadmap } from './gemini.service';
 
@@ -6,7 +7,15 @@ import { Roadmap } from './gemini.service';
     providedIn: 'root'
 })
 export class PdfService {
+    private platformId = inject(PLATFORM_ID);
+    private isBrowser = isPlatformBrowser(this.platformId);
+
     generateRoadmapPDF(roadmap: Roadmap, userName: string = 'Career Comeback'): void {
+        if (!this.isBrowser) {
+            console.warn('PDF generation is not available on the server.');
+            return;
+        }
+
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const margin = 20;
