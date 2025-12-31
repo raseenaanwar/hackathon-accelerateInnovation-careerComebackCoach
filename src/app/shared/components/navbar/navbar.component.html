@@ -1,0 +1,59 @@
+<!-- Floating Navbar Container -->
+<nav class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[65%] max-w-3xl">
+    <div
+        class="w-full bg-gradient-to-b from-[hsl(var(--color-bg-elevated))/0.95] to-[hsl(var(--color-bg-base))/0.95] backdrop-blur-2xl border border-[hsl(var(--color-border))] rounded-full ring-1 ring-white/50 dark:ring-white/10 transition-all duration-[var(--duration-base)] px-5 py-3 hover:-translate-y-0.5 animate-breathing-border">
+        <div class="flex items-center justify-between w-full">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer group" routerLink="/">
+                <div
+                    class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] shadow-inner flex items-center justify-center text-white font-bold group-hover:scale-110 group-hover:rotate-3 transition-all duration-[var(--duration-base)] text-sm overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    <span class="relative z-10 drop-shadow-md">C</span>
+                </div>
+                <span
+                    class="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--color-text-primary))] to-[hsl(var(--color-text-secondary))] hidden sm:block group-hover:from-[hsl(var(--color-primary))] group-hover:to-[hsl(var(--color-secondary))] transition-all duration-500">
+                    Career Comeback Coach
+                </span>
+                <span class="text-lg font-bold tracking-tight text-gradient sm:hidden">CCC</span>
+            </div>
+
+
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-1 sm:gap-2">
+                <a routerLink="/resume"
+                    routerLinkActive="bg-[hsl(var(--color-bg-base))] shadow-sm text-[hsl(var(--color-primary))] ring-1 ring-[hsl(var(--color-border))]"
+                    class="px-4 py-2 rounded-full text-xs sm:text-sm font-medium text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-text-primary))] hover:bg-[hsl(var(--color-bg-overlay))] transition-all duration-[var(--duration-base)]">
+                    <span class="sm:hidden">Start</span>
+                    <span class="hidden sm:inline">Start Journey</span>
+                </a>
+                <a routerLink="/interview/resume-session"
+                    routerLinkActive="bg-[hsl(var(--color-bg-base))] shadow-sm text-[hsl(var(--color-primary))] ring-1 ring-[hsl(var(--color-border))]"
+                    class="px-4 py-2 rounded-full text-xs sm:text-sm font-medium text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-text-primary))] hover:bg-[hsl(var(--color-bg-overlay))] transition-all duration-[var(--duration-base)]">
+                    <span class="sm:hidden">Practice</span>
+                    <span class="hidden sm:inline">Practice Interview</span>
+                </a>
+            </div>
+
+            <!-- Actions & Theme Toggle -->
+            <div class="flex items-center gap-2">
+                <!-- Theme Toggle -->
+                <button (click)="toggleTheme()"
+                    class="p-2 rounded-full hover:bg-[hsl(var(--color-bg-base))] text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-primary))] transition-all duration-[var(--duration-base)] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--color-primary))]"
+                    aria-label="Toggle Theme">
+                    @if (themeService.theme() === 'light') {
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    }
+                    @if (themeService.theme() === 'dark') {
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>

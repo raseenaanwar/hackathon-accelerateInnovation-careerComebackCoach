@@ -1,1 +1,239 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CAREER COMEBACK COACH - DESIGN SYSTEM
+   ============================================ */
+
+/* CSS Custom Properties for Theme Colors */
+@layer base {
+    :root {
+        /* Light Mode Colors */
+        --color-primary: 168 85% 58%;
+        --color-primary-hover: 168 85% 48%;
+        --color-secondary: 280 70% 65%;
+        --color-accent: 340 82% 60%;
+
+        --color-bg-base: 0 0% 100%;
+        --color-bg-elevated: 220 14% 97%;
+        --color-bg-overlay: 220 14% 94%;
+
+        --color-text-primary: 220 13% 10%;
+        --color-text-secondary: 220 9% 40%;
+        --color-text-muted: 220 9% 55%;
+
+        --color-border: 220 13% 82%;
+        --color-border-hover: 220 13% 70%;
+
+        --color-success: 142 76% 36%;
+        --color-warning: 38 92% 50%;
+        --color-error: 0 84% 60%;
+
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+        /* Animation Durations */
+        --duration-fast: 150ms;
+        --duration-base: 250ms;
+        --duration-slow: 350ms;
+
+        /* Spacing */
+        --spacing-section: 5rem;
+    }
+
+    .dark {
+        /* Dark Mode Colors */
+        --color-primary: 168 85% 58%;
+        --color-primary-hover: 168 85% 68%;
+        --color-secondary: 280 70% 65%;
+        --color-accent: 340 82% 60%;
+
+        --color-bg-base: 220 13% 10%;
+        --color-bg-elevated: 220 13% 14%;
+        --color-bg-overlay: 220 13% 18%;
+
+        --color-text-primary: 0 0% 95%;
+        --color-text-secondary: 220 9% 75%;
+        --color-text-muted: 220 9% 55%;
+
+        --color-border: 220 13% 25%;
+        --color-border-hover: 220 13% 35%;
+
+        --color-success: 142 76% 45%;
+        --color-warning: 38 92% 55%;
+        --color-error: 0 84% 65%;
+
+        /* Enhanced shadows for dark mode */
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+    }
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: hsl(var(--color-bg-base));
+    color: hsl(var(--color-text-primary));
+    transition: background-color var(--duration-base), color var(--duration-base);
+}
+
+app-root {
+    display: block;
+    height: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+}
+
+/* Custom Scrollbar Styles - Modern & Minimal */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--color-border));
+    border-radius: 9999px;
+    transition: background var(--duration-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--color-text-muted) / 0.6);
+}
+
+/* Firefox Scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--color-border)) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--color-border));
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Utility Classes */
+@layer utilities {
+    .text-gradient {
+        background: linear-gradient(135deg, hsl(var(--color-primary)), hsl(var(--color-secondary)));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .glassmorphism {
+        background: hsl(var(--color-bg-elevated) / 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid hsl(var(--color-border) / 0.6);
+    }
+
+    .animate-fade-in {
+        animation: fadeIn var(--duration-base) ease-in;
+    }
+
+    .animate-slide-up {
+        animation: slideUp var(--duration-slow) ease-out;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes breathing-border {
+
+    0%,
+    100% {
+        border-color: hsl(var(--color-border));
+        box-shadow:
+            0 15px 35px -5px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    50% {
+        border-color: hsl(var(--color-primary) / 0.4);
+        box-shadow:
+            0 15px 35px -5px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.05),
+            0 0 25px hsl(var(--color-primary) / 0.2);
+    }
+}
+
+.animate-breathing-border {
+    animation: breathing-border 4s infinite ease-in-out;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}

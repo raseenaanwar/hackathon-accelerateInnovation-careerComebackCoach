@@ -1,0 +1,107 @@
+<div class="flex flex-col h-[100dvh] pt-20 pb-0">
+    <!-- Header -->
+    <div
+        class="flex-shrink-0 border-b border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-elevated))/0.6] backdrop-blur-md px-4 py-3 z-10">
+        <div class="max-w-3xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex items-center justify-center text-white text-xs font-bold">
+                    AI
+                </div>
+                <div>
+                    <h1 class="text-base font-bold leading-tight">Mock Interview</h1>
+                    <div class="flex items-center space-x-2 text-xs text-[hsl(var(--color-text-muted))]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <span>Online</span>
+                        <span>•</span>
+                        <span>{{ formatDuration(duration()) }}</span>
+                    </div>
+                </div>
+            </div>
+            <button (click)="endInterview()"
+                class="px-3 py-1.5 rounded-md text-xs font-medium border border-[hsl(var(--color-error))] text-[hsl(var(--color-error))] hover:bg-[hsl(var(--color-error))] hover:text-white transition-all duration-[var(--duration-base)]">
+                End Session
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div #messagesContainer class="flex-1 overflow-y-auto px-4 py-4 [&::-webkit-scrollbar]:hidden"
+        style="scrollbar-width: none; -ms-overflow-style: none;">
+        <div class="max-w-3xl mx-auto space-y-4">
+            <div *ngFor="let message of messages()" [class.justify-end]="message.role === 'user'"
+                class="flex animate-fade-in group">
+
+                <!-- AI Avatar (only for assistant messages) -->
+                <div *ngIf="message.role === 'assistant'"
+                    class="w-6 h-6 rounded-full bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold mt-1 mr-2 opacity-100 transition-opacity">
+                    AI
+                </div>
+
+                <!-- Message Bubble -->
+                <div [class.bg-[hsl(var(--color-bg-elevated))]]="message.role === 'user'"
+                    [class.border]="message.role === 'user'"
+                    [class.border-[hsl(var(--color-border))]]="message.role === 'user'"
+                    [class.rounded-br-sm]="message.role === 'user'"
+                    [class.bg-[hsl(var(--color-bg-base))]]="message.role === 'assistant'"
+                    [class.border]="message.role === 'assistant'"
+                    [class.border-[hsl(var(--color-border))]]="message.role === 'assistant'"
+                    [class.rounded-bl-sm]="message.role === 'assistant'"
+                    class="max-w-[85%] sm:max-w-[75%] px-4 py-3 rounded-2xl shadow-sm text-sm leading-relaxed text-[hsl(var(--color-text-primary))]">
+
+                    <p class="whitespace-pre-wrap">{{ message.content }}</p>
+
+                    <!-- Timestamp -->
+                    <div class="text-[10px] mt-1 text-right opacity-60 text-[hsl(var(--color-text-muted))]">
+                        {{ message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div *ngIf="isTyping()" class="flex animate-fade-in">
+                <div
+                    class="w-6 h-6 rounded-full bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold mt-1 mr-2">
+                    AI
+                </div>
+                <div
+                    class="bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] px-4 py-3 rounded-2xl rounded-bl-sm">
+                    <div class="flex space-x-1.5">
+                        <div class="w-1.5 h-1.5 rounded-full bg-[hsl(var(--color-text-muted))] animate-bounce"
+                            style="animation-delay: 0ms;"></div>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[hsl(var(--color-text-muted))] animate-bounce"
+                            style="animation-delay: 150ms;"></div>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[hsl(var(--color-text-muted))] animate-bounce"
+                            style="animation-delay: 300ms;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div
+        class="flex-shrink-0 border-t border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-elevated))/0.6] backdrop-blur-md px-4 py-3 pb-safe">
+        <div class="max-w-3xl mx-auto">
+            <div
+                class="relative flex items-end bg-white/50 dark:bg-black/20 rounded-xl border border-[hsl(var(--color-border))] focus-within:ring-2 focus-within:ring-[hsl(var(--color-primary))] focus-within:border-transparent transition-all shadow-inner">
+                <textarea [(ngModel)]="userInput"
+                    (keydown.enter)="!($any($event).shiftKey) && sendMessage(); $any($event).shiftKey || $event.preventDefault()"
+                    placeholder="Type your response..." rows="1"
+                    class="w-full px-4 py-3 bg-transparent border-none focus:ring-0 focus:outline-none text-[hsl(var(--color-text-primary))] placeholder:text-[hsl(var(--color-text-muted))] resize-none text-sm max-h-32"
+                    style="min-height: 44px; max-height: 120px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;"></textarea>
+
+                <button (click)="sendMessage()" [disabled]="!userInput().trim() || isTyping()"
+                    class="m-1.5 p-2 rounded-lg bg-[hsl(var(--color-primary))] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+            <p class="mt-2 text-[10px] text-[hsl(var(--color-text-muted))] text-center">
+                Press Enter to send • Shift+Enter for new line
+            </p>
+        </div>
+    </div>
+</div>

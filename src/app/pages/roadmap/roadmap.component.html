@@ -1,0 +1,193 @@
+<div class="h-[100dvh] pt-24 pb-4 px-4 sm:px-6 lg:px-8 flex flex-col overflow-hidden">
+    <div class="max-w-5xl mx-auto w-full flex flex-col h-full">
+        <!-- Header -->
+        <div class="flex-none text-center mb-4 animate-slide-up">
+            <h1 class="text-2xl sm:text-3xl font-bold mb-2">
+                Your Personalized <span class="text-gradient">Roadmap</span>
+            </h1>
+            <p class="text-sm text-[hsl(var(--color-text-secondary))] mb-2 max-w-3xl mx-auto line-clamp-2">
+                {{ roadmap()?.overallGoal }}
+            </p>
+            <div class="flex items-center justify-center space-x-4 text-xs text-[hsl(var(--color-text-muted))]">
+                <span>⏱️ {{ roadmap()?.estimatedHours }} hours</span>
+                <span>•</span>
+                <span>📅 {{ roadmap()?.weeks?.length || 0 }} weeks</span>
+            </div>
+        </div>
+
+        <!-- Week Tabs -->
+        <div class="flex-none flex overflow-x-auto space-x-2 mb-4 pb-2 scrollbar-hide">
+            <button *ngFor="let week of roadmap()?.weeks" (click)="selectWeek(week.week)"
+                [class.bg-gradient-to-r]="selectedWeek() === week.week"
+                [class.from-[hsl(var(--color-primary))]]="selectedWeek() === week.week"
+                [class.to-[hsl(var(--color-secondary))]]="selectedWeek() === week.week"
+                [class.text-white]="selectedWeek() === week.week" [class.shadow-sm]="selectedWeek() === week.week"
+                class="px-4 py-2 rounded-lg border border-[hsl(var(--color-border))] whitespace-nowrap font-medium text-sm transition-all duration-[var(--duration-base)] hover:scale-105 flex-shrink-0 bg-white/50 dark:bg-black/20 hover:bg-[hsl(var(--color-bg-overlay))]">
+                Week {{ week.week }}
+            </button>
+        </div>
+
+        <!-- Week Content (Scrollable) -->
+        <div class="flex-1 overflow-y-auto min-h-0 pr-1 pb-2 custom-scrollbar">
+            <div *ngFor="let week of roadmap()?.weeks" class="animate-fade-in">
+                <div *ngIf="selectedWeek() === week.week" class="space-y-4">
+                    <!-- Week Title -->
+                    <div
+                        class="p-3 rounded-xl border border-[hsl(var(--color-border))] bg-gradient-to-r from-[hsl(var(--color-primary))]/10 to-[hsl(var(--color-secondary))]/10">
+                        <h2 class="text-lg font-bold mb-1">{{ week.title }}</h2>
+                        <p class="text-xs text-[hsl(var(--color-text-secondary))]">Week {{ week.week }} of {{
+                            roadmap()?.weeks?.length || 0 }}</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- Goals -->
+                        <div class="p-4 rounded-xl glassmorphism flex flex-col h-full">
+                            <h3 class="text-base font-semibold mb-3 flex items-center">
+                                <span
+                                    class="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex items-center justify-center text-white mr-2 text-xs">🎯</span>
+                                Goals
+                            </h3>
+                            <ul class="space-y-2 flex-grow">
+                                <li *ngFor="let goal of week.goals.slice(0, 2)" class="flex items-start text-sm">
+                                    <svg class="w-4 h-4 text-[hsl(var(--color-primary))] mr-2 mt-0.5 flex-shrink-0"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-[hsl(var(--color-text-secondary))] line-clamp-2">{{ goal }}</span>
+                                </li>
+                            </ul>
+                            <button *ngIf="week.goals.length > 2" (click)="openModal('Goals', week.goals)"
+                                class="mt-2 text-xs font-medium text-[hsl(var(--color-primary))] hover:underline text-left">
+                                + {{ week.goals.length - 2 }} more
+                            </button>
+                        </div>
+
+                        <!-- Topics -->
+                        <div class="p-4 rounded-xl glassmorphism flex flex-col h-full">
+                            <h3 class="text-base font-semibold mb-3 flex items-center">
+                                <span
+                                    class="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex items-center justify-center text-white mr-2 text-xs">📚</span>
+                                Topics
+                            </h3>
+                            <div class="flex flex-wrap gap-2 mb-auto">
+                                <span *ngFor="let topic of week.topics.slice(0, 4)"
+                                    class="px-2.5 py-1 rounded-md bg-[hsl(var(--color-bg-overlay))] border border-[hsl(var(--color-border))] text-xs">
+                                    {{ topic }}
+                                </span>
+                            </div>
+                            <button *ngIf="week.topics.length > 4" (click)="openModal('Topics', week.topics)"
+                                class="mt-2 text-xs font-medium text-[hsl(var(--color-primary))] hover:underline text-left">
+                                + {{ week.topics.length - 4 }} more
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- Resources -->
+                        <div class="p-4 rounded-xl glassmorphism flex flex-col h-full">
+                            <h3 class="text-base font-semibold mb-3 flex items-center">
+                                <span
+                                    class="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex items-center justify-center text-white mr-2 text-xs">🔗</span>
+                                Resources
+                            </h3>
+                            <ul class="space-y-2 flex-grow">
+                                <li *ngFor="let resource of week.resources.slice(0, 2)"
+                                    class="flex items-start text-sm">
+                                    <svg class="w-4 h-4 text-[hsl(var(--color-secondary))] mr-2 mt-0.5 flex-shrink-0"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    <span class="text-[hsl(var(--color-text-secondary))] truncate block max-w-xs">{{
+                                        resource }}</span>
+                                </li>
+                            </ul>
+                            <button *ngIf="week.resources.length > 2" (click)="openModal('Resources', week.resources)"
+                                class="mt-2 text-xs font-medium text-[hsl(var(--color-primary))] hover:underline text-left">
+                                + {{ week.resources.length - 2 }} more
+                            </button>
+                        </div>
+
+                        <!-- Projects -->
+                        <div class="p-4 rounded-xl glassmorphism flex flex-col h-full">
+                            <h3 class="text-base font-semibold mb-3 flex items-center">
+                                <span
+                                    class="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] flex items-center justify-center text-white mr-2 text-xs">💻</span>
+                                Projects
+                            </h3>
+                            <ul class="space-y-2 flex-grow">
+                                <li *ngFor="let project of week.projects.slice(0, 2)" class="flex items-start text-sm">
+                                    <svg class="w-4 h-4 text-[hsl(var(--color-accent))] mr-2 mt-0.5 flex-shrink-0"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span class="text-[hsl(var(--color-text-secondary))] line-clamp-2">{{ project
+                                        }}</span>
+                                </li>
+                            </ul>
+                            <button *ngIf="week.projects.length > 2" (click)="openModal('Projects', week.projects)"
+                                class="mt-2 text-xs font-medium text-[hsl(var(--color-primary))] hover:underline text-left">
+                                + {{ week.projects.length - 2 }} more
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex-none mt-2 flex flex-col sm:flex-row gap-3 justify-center pb-2">
+            <button (click)="downloadPDF()"
+                class="px-6 py-2.5 rounded-lg font-semibold border-2 border-[hsl(var(--color-primary))] text-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))] hover:text-white transition-all duration-[var(--duration-base)] text-sm">
+                📄 Download PDF
+            </button>
+            <button (click)="startInterview()"
+                class="px-6 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] hover:shadow-md transition-all duration-[var(--duration-base)] hover:scale-105 text-sm">
+                Start Mock Interview →
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div *ngIf="expandedItem()" class="fixed inset-0 z-[100] flex items-center justify-center px-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
+
+        <!-- Modal Content -->
+        <div
+            class="relative w-full max-w-lg glassmorphism rounded-2xl shadow-2xl p-6 transform transition-all animate-scale-in">
+            <button (click)="closeModal()"
+                class="absolute top-4 right-4 p-1 rounded-full text-[hsl(var(--color-text-muted))] hover:bg-[hsl(var(--color-bg-overlay))] hover:text-[hsl(var(--color-text-primary))] transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span *ngIf="expandedItem()?.title === 'Goals'">🎯</span>
+                <span *ngIf="expandedItem()?.title === 'Topics'">📚</span>
+                <span *ngIf="expandedItem()?.title === 'Resources'">🔗</span>
+                <span *ngIf="expandedItem()?.title === 'Projects'">💻</span>
+                {{ expandedItem()?.title }}
+            </h3>
+
+            <div class="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                <ul *ngIf="expandedItem()?.title !== 'Topics'" class="space-y-3">
+                    <li *ngFor="let item of expandedItem()?.content" class="flex items-start text-sm">
+                        <span class="text-[hsl(var(--color-primary))] mr-2 mt-1">•</span>
+                        <span class="text-[hsl(var(--color-text-secondary))] leading-relaxed">{{ item }}</span>
+                    </li>
+                </ul>
+
+                <div *ngIf="expandedItem()?.title === 'Topics'" class="flex flex-wrap gap-2">
+                    <span *ngFor="let item of expandedItem()?.content"
+                        class="px-3 py-1.5 rounded-md bg-[hsl(var(--color-bg-overlay))] border border-[hsl(var(--color-border))] text-sm">
+                        {{ item }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
