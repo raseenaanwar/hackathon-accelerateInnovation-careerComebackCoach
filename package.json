@@ -1,6 +1,6 @@
 {
   "name": "career-comeback-coach",
-  "version": "0.0.0",
+  "version": "1.2.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --watch --open",
@@ -9,6 +9,12 @@
     "test": "ng test",
     "serve:ssr:career-comeback-coach": "node dist/career-comeback-coach/server/server.mjs"
   },
+  "author": {
+    "name": "rishi-rj-s, raseenaanwar",
+    "email": "rishirajsajeev@gmail.com",
+    "email2": "raseanwar@gmail.com"
+  },
+  "license": "MIT",
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,
