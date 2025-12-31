@@ -19,6 +19,7 @@ export class ResumeInputComponent {
     uploadedFile = signal<File | null>(null);
     manualText = signal<string>('');
     isProcessing = signal<boolean>(false);
+    errorMessage = signal<string>('');
     roadmapWeeks = signal<number>(4);
 
     constructor(
@@ -28,6 +29,7 @@ export class ResumeInputComponent {
 
     setActiveTab(tab: 'upload' | 'text'): void {
         this.activeTab.set(tab);
+        this.errorMessage.set(''); // Clear error on tab switch
     }
 
     onFileSelected(event: Event): void {
@@ -37,16 +39,18 @@ export class ResumeInputComponent {
             const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'text/plain'];
 
             if (!validTypes.includes(file.type)) {
-                alert('Please upload a PDF, Word document, or text file.');
+                this.errorMessage.set('Please upload a PDF, Word document, or text file.');
                 return;
             }
 
             this.uploadedFile.set(file);
+            this.errorMessage.set('');
         }
     }
 
     async processResume(): Promise<void> {
         this.isProcessing.set(true);
+        this.errorMessage.set('');
 
         let resumeText = '';
 
@@ -64,7 +68,7 @@ export class ResumeInputComponent {
         }
 
         if (!resumeText.trim()) {
-            alert('Please provide your resume information.');
+            this.errorMessage.set('Please provide your resume information.');
             this.isProcessing.set(false);
             return;
         }
