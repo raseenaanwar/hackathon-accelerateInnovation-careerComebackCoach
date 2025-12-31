@@ -24,7 +24,8 @@
         <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 pb-2">
             <!-- Feedback Cards -->
-            <div *ngFor="let section of feedbackSections()" class="p-4 rounded-xl glassmorphism animate-slide-up">
+            @for (section of feedbackSections(); track section.title) {
+            <div class="p-4 rounded-xl glassmorphism animate-slide-up">
                 <!-- Header -->
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-base font-semibold">{{ section.title }}</h3>
@@ -50,11 +51,12 @@
                             <span class="mr-1">👍</span> Strengths
                         </h4>
                         <ul class="space-y-1">
-                            <li *ngFor="let highlight of section.highlights"
-                                class="flex items-start text-[hsl(var(--color-text-secondary))]">
+                            @for (highlight of section.highlights; track $index) {
+                            <li class="flex items-start text-[hsl(var(--color-text-secondary))]">
                                 <span class="text-[hsl(var(--color-success))] mr-1.5">•</span>
                                 <span>{{ highlight }}</span>
                             </li>
+                            }
                         </ul>
                     </div>
                     <!-- Improvements -->
@@ -63,15 +65,17 @@
                             <span class="mr-1">💡</span> To Improve
                         </h4>
                         <ul class="space-y-1">
-                            <li *ngFor="let improvement of section.improvements"
-                                class="flex items-start text-[hsl(var(--color-text-secondary))]">
+                            @for (improvement of section.improvements; track $index) {
+                            <li class="flex items-start text-[hsl(var(--color-text-secondary))]">
                                 <span class="text-[hsl(var(--color-warning))] mr-1.5">•</span>
                                 <span>{{ improvement }}</span>
                             </li>
+                            }
                         </ul>
                     </div>
                 </div>
             </div>
+            }
 
             <!-- Compact Steps -->
             <div

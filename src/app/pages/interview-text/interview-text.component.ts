@@ -27,7 +27,7 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
     messages = signal<Message[]>([]);
     userInput = signal<string>('');
     isTyping = signal<boolean>(false);
-    duration = signal<number>(0);
+    duration = signal<number>(300); // 5 minutes countdown
 
     private durationInterval?: any;
     private shouldScrollToBottom = false;
@@ -65,7 +65,11 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
 
     private startDurationTimer(): void {
         this.durationInterval = setInterval(() => {
-            this.duration.set(this.duration() + 1);
+            if (this.duration() > 0) {
+                this.duration.set(this.duration() - 1);
+            } else {
+                this.endInterview();
+            }
         }, 1000);
     }
 

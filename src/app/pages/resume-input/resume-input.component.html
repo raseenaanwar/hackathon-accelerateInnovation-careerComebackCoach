@@ -36,7 +36,8 @@
         <!-- Content Area -->
         <div class="max-w-xl mx-auto glassmorphism rounded-2xl p-4 sm:p-5 shadow-lg w-full">
             <!-- Upload Tab -->
-            <div *ngIf="activeTab() === 'upload'" class="space-y-3 animate-fade-in">
+            @if (activeTab() === 'upload') {
+            <div class="space-y-3 animate-fade-in">
                 <div
                     class="border-2 border-dashed border-[hsl(var(--color-border))] rounded-lg p-6 text-center hover:border-[hsl(var(--color-primary))] hover:bg-white/10 transition-all duration-[var(--duration-base)] cursor-pointer group flex flex-col justify-center h-48 sm:h-40">
                     <input type="file" id="resume-upload" name="resumeFile" accept=".pdf,.doc,.docx,.txt"
@@ -59,7 +60,8 @@
                 </p>
 
                 <!-- File Preview -->
-                <div *ngIf="uploadedFile()"
+                @if (uploadedFile()) {
+                <div
                     class="flex items-center justify-between p-3 rounded-lg bg-white/40 dark:bg-black/20 border border-[hsl(var(--color-border))]">
                     <div class="flex items-center space-x-3">
                         <div
@@ -85,10 +87,13 @@
                         </svg>
                     </button>
                 </div>
+                }
             </div>
+            }
 
             <!-- Text Tab -->
-            <div *ngIf="activeTab() === 'text'" class="space-y-3 animate-fade-in">
+            @if (activeTab() === 'text') {
+            <div class="space-y-3 animate-fade-in">
                 <textarea [(ngModel)]="manualText" id="manual-resume-input" name="manualResumeText"
                     aria-label="Manual Resume Input" spellcheck="true"
                     placeholder="Paste your resume or describe your skills, experience, and career goals..."
@@ -97,6 +102,7 @@
                     Include your skills, previous roles, tech stack, and career gap details for best results.
                 </p>
             </div>
+            }
 
             <!-- Roadmap Duration -->
             <div
@@ -118,8 +124,10 @@
             <button (click)="processResume()"
                 [disabled]="isProcessing() || (activeTab() === 'upload' && !uploadedFile()) || (activeTab() === 'text' && !manualText().trim())"
                 class="w-full mt-3 py-2.5 rounded-lg font-bold text-white bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] shadow-md hover:shadow-lg hover:shadow-[hsl(var(--color-primary)/0.2)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-[var(--duration-base)] hover:scale-[1.01] transform active:scale-[0.99] text-sm sm:text-base">
-                <span *ngIf="!isProcessing()">Analyze My Skills →</span>
-                <span *ngIf="isProcessing()" class="flex items-center justify-center space-x-2">
+                @if (!isProcessing()) {
+                <span>Analyze My Skills →</span>
+                } @else {
+                <span class="flex items-center justify-center space-x-2">
                     <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
                         </circle>
@@ -129,6 +137,7 @@
                     </svg>
                     <span>Processing...</span>
                 </span>
+                }
             </button>
         </div>
     </div>
