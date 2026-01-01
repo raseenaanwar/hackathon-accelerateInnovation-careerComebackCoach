@@ -1,5 +1,5 @@
-import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GeminiService } from '@core/services/gemini.service';
@@ -33,12 +33,17 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
     private durationInterval?: any;
     private shouldScrollToBottom = false;
 
+    private isBrowser = false;
+
     constructor(
         private router: Router,
         private geminiService: GeminiService,
         private storageService: StorageService,
-        private elevenLabsService: ElevenLabsService
-    ) { }
+        private elevenLabsService: ElevenLabsService,
+        @Inject(PLATFORM_ID) platformId: Object
+    ) {
+        this.isBrowser = isPlatformBrowser(platformId);
+    }
 
     async ngOnInit(): Promise<void> {
         await this.initializeInterview();
@@ -57,9 +62,13 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
         const sessionData = this.storageService.sessionState();
         const roadmapData = sessionData.roadmapData;
 
-        const context = roadmapData
-            ? `focusing on ${roadmapData.overallGoal}`
-            : 'general tech skills';
+        if (!roadmapData) {
+            // Redirect if no session - reusing similar logic to voice component but simpler for text
+            this.router.navigate(['/resume']);
+            return;
+        }
+
+        const context = `focusing on ${roadmapData.overallGoal}`;
 
         // Add welcome message
         this.addMessage('assistant', `Welcome to your interview practice! I'm here to help you prepare for your tech comeback ${context}. Let's start with a simple question: Tell me about your background and what brought you back to tech.`);
@@ -92,6 +101,11 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
         }
     }
 
+    // TTS Toggle
+    useTTS = signal<boolean>(false);
+    isSpeaking = signal<boolean>(false);
+    streamingContent = signal<string>('');
+
     async sendMessage(): Promise<void> {
         const input = this.userInput().trim();
         if (!input || this.isTyping()) return;
@@ -99,54 +113,80 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
         // Add user message
         this.addMessage('user', input);
         this.userInput.set('');
-
-        // Show typing indicator
         this.isTyping.set(true);
+        this.streamingContent.set('');
 
         try {
-            // Get AI response
-            const conversationHistory = this.messages()
-                .map(m => `${m.role === 'user' ? 'Candidate' : 'Interviewer'}: ${m.content}`)
-                .join('\n');
+            // Add placeholder for assistant message
+            this.addMessage('assistant', '');
 
-            const prompt = `You are conducting a technical interview for someone returning to tech. 
-      
-Conversation so far:
-${conversationHistory}
+            // Get conversation history for context
+            const history = this.messages().slice(0, -1).map(m => ({
+                role: m.role,
+                content: m.content
+            }));
 
-Candidate's latest response: ${input}
+            const prompt = `You are conducting a technical interview. \n\nCandidate's response: ${input}\n\nProvide a thoughtful, short follow-up or feedback (max 3 sentences).`;
 
-Provide a thoughtful follow-up question or feedback. Be encouraging but professional. Ask about technical skills, problem-solving, or past experiences. Keep responses concise (2-3 sentences).
+            const stream = this.geminiService.chatStream(prompt, history);
+            let fullResponse = '';
 
-Your response:`;
+            for await (const chunk of stream) {
+                fullResponse += chunk;
+                this.streamingContent.set(fullResponse);
 
-            const result = await this.geminiService.analyzeResume(prompt);
-            // Mock response for now since analyzeResume returns SkillAnalysis
-            // In a real implementation this would come from `result` if analyzeResume supported generic prompts properly, 
-            // or we'd add a separate method in GeminiService for chat.
-            const response = "That's great! Can you tell me more about a challenging technical problem you solved in your previous role?";
-
-            this.addMessage('assistant', response);
-
-            // Text-to-Speech playback (ElevenLabs)
-            try {
-                // We don't block the UI for this, just play it when ready
-                const audioUrl = await this.elevenLabsService.textToSpeech(response);
-                if (audioUrl) {
-                    const audio = new Audio(audioUrl);
-                    audio.play().catch(e => console.warn('Audio play blocked/failed:', e));
-                } else {
-                    // DEMO MODE: No audio returned
-                    console.log('Demo Mode: TTS simulated (no audio played).');
-                }
-            } catch (err) {
-                console.warn('TTS playback failed:', err);
+                // Update the last message (assistant's placeholder) with current stream
+                this.messages.update(msgs => {
+                    const newMsgs = [...msgs];
+                    if (newMsgs.length > 0) {
+                        newMsgs[newMsgs.length - 1] = {
+                            ...newMsgs[newMsgs.length - 1],
+                            content: fullResponse
+                        };
+                    }
+                    return newMsgs;
+                });
+                this.shouldScrollToBottom = true;
             }
+
+            // Audio Playback (if enabled)
+            if (this.useTTS() && fullResponse) {
+                this.playTTS(fullResponse);
+            }
+
         } catch (error) {
             console.error('Error getting AI response:', error);
-            this.addMessage('assistant', 'I apologize, I had trouble processing that. Could you rephrase your response?');
+            // If completely failed, remove the placeholder or show error
+            this.messages.update(msgs => {
+                const newMsgs = [...msgs];
+                if (newMsgs.length > 0 && newMsgs[newMsgs.length - 1].content === '') {
+                    newMsgs[newMsgs.length - 1].content = "I apologize, I'm having trouble connecting. Please try again.";
+                }
+                return newMsgs;
+            });
         } finally {
             this.isTyping.set(false);
+            this.streamingContent.set('');
+        }
+    }
+
+    async playTTS(text: string): Promise<void> {
+        if (!this.isBrowser) return;
+        try {
+            this.isSpeaking.set(true);
+            const audioUrl = await this.elevenLabsService.textToSpeech(text);
+            if (audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.onended = () => this.isSpeaking.set(false);
+                await audio.play();
+            } else {
+                this.isSpeaking.set(false);
+            }
+        } catch (error) {
+            console.warn('TTS playback failed:', error);
+            this.isSpeaking.set(false);
+            // Optionally disable TTS if it fails due to auth
+            // this.useTTS.set(false);
         }
     }
 

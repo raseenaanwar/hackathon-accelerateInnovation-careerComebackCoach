@@ -60,8 +60,17 @@ export class ResumeInputComponent {
             if (file.type === 'text/plain') {
                 resumeText = await file.text();
             } else {
-                // For PDF/Word, we'll need a library - for now just use filename as placeholder
-                resumeText = `[File: ${file.name}] - Full parsing to be implemented`;
+                // For PDF/Word: Convert to Base64 to send to Gemini as multimodal input
+                // Note: We prepend a special flag so GeminiService knows this is a base64 file, not raw text
+                try {
+                    const base64 = await this.fileToBase64(file);
+                    // Format: [FILE_DATA:mimeType:base64String]
+                    resumeText = `[FILE_DATA:${file.type}:${base64}]`;
+                } catch (err) {
+                    this.errorMessage.set('Failed to process file. Please try again.');
+                    this.isProcessing.set(false);
+                    return;
+                }
             }
         } else if (this.activeTab() === 'text') {
             resumeText = this.manualText();
@@ -71,6 +80,39 @@ export class ResumeInputComponent {
             this.errorMessage.set('Please provide your resume information.');
             this.isProcessing.set(false);
             return;
+        }
+
+        // VALIDATION: Security & Quality Checks
+        if (this.activeTab() === 'text') {
+            const cleanText = resumeText.trim();
+
+            // 1. Length Validation
+            if (cleanText.length < 50) {
+                this.errorMessage.set('Please provide more details (at least 50 characters) for an accurate analysis.');
+                this.isProcessing.set(false);
+                return;
+            }
+
+            if (cleanText.length > 1000) {
+                this.errorMessage.set('Text is too long. Please keep it under 1000 characters to ensure processing.');
+                this.isProcessing.set(false);
+                return;
+            }
+
+            // 2. Gibberish/Repetition Check (Simple Heuristic)
+            // Checks for long sequences of repeated characters (e.g., "aaaaa")
+            if (/(.)\1{9,}/.test(cleanText)) {
+                this.errorMessage.set('Please interpret real skills data. Repeated characters detected.');
+                this.isProcessing.set(false);
+                return;
+            }
+
+            // 3. Basic Content Check (e.g. no code injection attempts - extremely basic sanitization warning)
+            if (cleanText.includes('<script>') || cleanText.includes('javascript:')) {
+                this.errorMessage.set('Invalid characters detected. Please enter plain text only.');
+                this.isProcessing.set(false);
+                return;
+            }
         }
 
         // Clear previous session data to start fresh
@@ -88,5 +130,19 @@ export class ResumeInputComponent {
         setTimeout(() => {
             this.router.navigate(['/analysis']);
         }, 500);
+    }
+
+    private fileToBase64(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                // Remove data URL prefix (e.g., "data:application/pdf;base64,")
+                const result = reader.result as string;
+                const base64 = result.split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = error => reject(error);
+        });
     }
 }

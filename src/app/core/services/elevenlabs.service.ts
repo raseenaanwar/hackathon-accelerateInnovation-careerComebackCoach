@@ -1,10 +1,14 @@
 import { Injectable, signal, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '@env/environment';
+import { HttpClient } from '@angular/common/http';
+import { RateLimiterService } from './rate-limiter.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ElevenLabsService {
+    private http = inject(HttpClient);
     private platformId = inject(PLATFORM_ID);
     private isBrowser = isPlatformBrowser(this.platformId);
     private socket: WebSocket | null = null;
@@ -14,14 +18,14 @@ export class ElevenLabsService {
     public isSpeaking = signal(false); // Tracks if Agent is speaking
 
     // API CONFIG - TODO: Move to environment variables for production
-    private readonly API_KEY = 'YOUR_ELEVENLABS_API_KEY'; // User to replace this
+    private readonly API_KEY = environment.elevenLabsApiKey; // User to replace this
 
     // Helper to check for demo mode
     private isDemoMode(): boolean {
         return this.API_KEY === 'YOUR_ELEVENLABS_API_KEY' || !this.API_KEY;
     }
 
-    constructor() { }
+    constructor(private rateLimiter: RateLimiterService) { }
 
     /**
      * Converts text to speech using ElevenLabs API
@@ -29,6 +33,12 @@ export class ElevenLabsService {
      */
     async textToSpeech(text: string, voiceId: string = '21m00Tcm4TlvDq8ikWAM'): Promise<string> {
         if (!this.isBrowser) return '';
+
+        // Rate Limit: 1 request every 3 seconds to prevent rapid-fire API calls
+        if (!this.rateLimiter.isAllowed('elevenlabs-tts', 1, 3000)) {
+            console.warn('ElevenLabs TTS: Throttled request.');
+            return '';
+        }
 
         // DEMO DATA: Simulate TTS in demo mode
         if (this.isDemoMode()) {
@@ -47,7 +57,7 @@ export class ElevenLabsService {
                 },
                 body: JSON.stringify({
                     text,
-                    model_id: 'eleven_monolingual_v1',
+                    model_id: 'eleven_turbo_v2_5',
                     voice_settings: {
                         stability: 0.5,
                         similarity_boost: 0.75
@@ -73,7 +83,7 @@ export class ElevenLabsService {
      * Connects to ElevenLabs Conversational AI (Agents) via WebSocket
      * This fulfills the hackathon requirement for "Voice-driven" interaction.
      */
-    async startConversation(agentId: string): Promise<void> {
+    async startConversation(agentId: string, dynamicVariables?: Record<string, string>): Promise<void> {
         if (!this.isBrowser) return;
 
         // DEMO DATA: Simulate Connection
@@ -94,7 +104,20 @@ export class ElevenLabsService {
             try {
                 // Determine WebSocket URL
                 // Note: ElevenLabs ConvAI WebSocket endpoint
-                const url = `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${agentId}`;
+                let url = `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${agentId}`;
+
+                // Append dynamic variables as query parameters
+                // Note: Ensure variables are defined in the Agent's configuration dashboard if required
+                if (dynamicVariables) {
+                    const params = new URLSearchParams();
+                    Object.keys(dynamicVariables).forEach(key => {
+                        params.append(key, dynamicVariables[key]);
+                    });
+                    const paramString = params.toString();
+                    if (paramString) {
+                        url += `&${paramString}`;
+                    }
+                }
 
                 this.socket = new WebSocket(url);
 
@@ -189,9 +212,15 @@ export class ElevenLabsService {
     private audioContext: AudioContext | null = null;
 
     private async playAudioChunk(base64Audio: string) {
+        if (!this.isBrowser) return;
+
         if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const AudioCtor = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioCtor) {
+                this.audioContext = new AudioCtor();
+            }
         }
+        if (!this.audioContext) return;
 
         // Decode audio
         const audioData = atob(base64Audio);

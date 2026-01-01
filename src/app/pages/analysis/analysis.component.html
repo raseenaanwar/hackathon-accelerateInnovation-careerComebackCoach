@@ -40,6 +40,18 @@
                 </div>
             </div>
 
+            <!-- Streaming Analysis Text -->
+            <div *ngIf="streamingText()"
+                class="max-w-2xl mx-auto mb-8 text-left bg-white/50 dark:bg-black/20 rounded-lg p-4 border border-[hsl(var(--color-border))] font-mono text-sm max-h-60 overflow-y-auto shadow-inner animate-fade-in custom-scrollbar">
+                <div
+                    class="flex items-center gap-2 mb-2 text-xs font-bold text-[hsl(var(--color-primary))] uppercase tracking-wider">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    AI Analysis Live Stream
+                </div>
+                <div class="whitespace-pre-wrap leading-relaxed text-[hsl(var(--color-text-primary))]">{{
+                    streamingText().replace('JSON_DATA:', '') }}</div>
+            </div>
+
             <!-- Loading skeleton -->
             <div class="grid md:grid-cols-2 gap-3 max-w-lg mx-auto">
                 <div class="h-24 rounded-lg bg-[hsl(var(--color-bg-elevated))] animate-pulse"></div>
@@ -47,6 +59,24 @@
                 <div class="h-24 rounded-lg bg-[hsl(var(--color-bg-elevated))] animate-pulse"></div>
                 <div class="h-24 rounded-lg bg-[hsl(var(--color-bg-elevated))] animate-pulse"></div>
             </div>
+        </div>
+
+
+        <!-- Error State -->
+        <div *ngIf="!isAnalyzing() && !analysisComplete()" class="text-center animate-slide-up py-10">
+            <div
+                class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold mb-2 text-[hsl(var(--color-text-primary))]">Analysis Failed</h2>
+            <p class="text-base text-[hsl(var(--color-text-secondary))] mb-6 max-w-md mx-auto">
+                {{ currentStep() || 'We encountered an error analyzing your input.' }}
+            </p>
+            <p class="text-sm text-[hsl(var(--color-text-muted))] mb-4">Redirecting you back to try again...</p>
         </div>
 
         <!-- Results State -->
