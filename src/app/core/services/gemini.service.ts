@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '@env/environment';
 import { GoogleGenAI } from '@google/genai';
 import { RateLimiterService } from './rate-limiter.service';
@@ -38,7 +38,9 @@ export class GeminiService {
   private genAI: GoogleGenAI;
   private hasValidKey = false;
 
-  constructor(private rateLimiter: RateLimiterService) {
+  private rateLimiter = inject(RateLimiterService);
+
+  constructor() {
     const apiKey = environment.geminiApiKey;
     // Check if key is real/valid (simplified check)
     this.hasValidKey = !!apiKey && apiKey !== 'YOUR_GEMINI_API_KEY' && apiKey.trim() !== '';

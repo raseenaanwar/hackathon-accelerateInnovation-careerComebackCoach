@@ -1,5 +1,4 @@
-import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { StorageService } from '@core/services/storage.service';
 
@@ -14,7 +13,7 @@ interface FeedbackSection {
 
 @Component({
     selector: 'app-feedback',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './feedback.component.html',
     styles: [`
     :host {
@@ -78,10 +77,8 @@ export class FeedbackComponent {
         }
     ]);
 
-    constructor(
-        private router: Router,
-        private storageService: StorageService
-    ) { }
+    private router = inject(Router);
+    private storageService = inject(StorageService);
 
     getScoreColor(score: number): string {
         if (score >= 80) return 'text-[hsl(var(--color-success))]';

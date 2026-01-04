@@ -1,5 +1,5 @@
-import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GeminiService } from '@core/services/gemini.service';
@@ -14,7 +14,7 @@ interface Message {
 
 @Component({
     selector: 'app-interview-text',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     templateUrl: './interview-text.component.html',
     styles: [`
     :host {
@@ -33,17 +33,12 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
     private durationInterval?: any;
     private shouldScrollToBottom = false;
 
-    private isBrowser = false;
-
-    constructor(
-        private router: Router,
-        private geminiService: GeminiService,
-        private storageService: StorageService,
-        private elevenLabsService: ElevenLabsService,
-        @Inject(PLATFORM_ID) platformId: Object
-    ) {
-        this.isBrowser = isPlatformBrowser(platformId);
-    }
+    private router = inject(Router);
+    private geminiService = inject(GeminiService);
+    private storageService = inject(StorageService);
+    private elevenLabsService = inject(ElevenLabsService);
+    private platformId = inject(PLATFORM_ID);
+    private isBrowser = isPlatformBrowser(this.platformId);
 
     async ngOnInit(): Promise<void> {
         await this.initializeInterview();

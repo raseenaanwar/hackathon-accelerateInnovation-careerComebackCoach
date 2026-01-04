@@ -25,7 +25,7 @@ export class ElevenLabsService {
         return this.API_KEY === 'YOUR_ELEVENLABS_API_KEY' || !this.API_KEY;
     }
 
-    constructor(private rateLimiter: RateLimiterService) { }
+    private rateLimiter = inject(RateLimiterService);
 
     /**
      * Converts text to speech using ElevenLabs API

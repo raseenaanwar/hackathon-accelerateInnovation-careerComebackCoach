@@ -1,11 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { StorageService } from '@core/services/storage.service';
 
 @Component({
     selector: 'app-interview-setup',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './interview-setup.component.html',
     styles: [`
     :host {
@@ -16,10 +15,8 @@ import { StorageService } from '@core/services/storage.service';
 export class InterviewSetupComponent {
     selectedMode = signal<'voice' | 'text' | null>(null);
 
-    constructor(
-        private router: Router,
-        private storageService: StorageService
-    ) { }
+    private router = inject(Router);
+    private storageService = inject(StorageService);
 
     selectMode(mode: 'voice' | 'text'): void {
         this.selectedMode.set(mode);
