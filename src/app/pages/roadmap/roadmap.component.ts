@@ -1,13 +1,13 @@
-import { Component, OnInit, signal, HostListener, ViewChildren, QueryList, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, HostListener, ViewChildren, QueryList, ElementRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
+
 import { Roadmap } from '@core/services/gemini.service';
 import { StorageService } from '@core/services/storage.service';
 import { PdfService } from '@core/services/pdf.service';
 
 @Component({
     selector: 'app-roadmap',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './roadmap.component.html',
     styles: [`
     :host {
@@ -30,11 +30,9 @@ export class RoadmapComponent implements OnInit {
     readonly THETA = 90; // Large gap to prevent overlap
     readonly RADIUS = 400; // Adjusted radius
 
-    constructor(
-        private router: Router,
-        private storageService: StorageService,
-        private pdfService: PdfService
-    ) { }
+    private router = inject(Router);
+    private storageService = inject(StorageService);
+    private pdfService = inject(PdfService);
 
     ngOnInit(): void {
         const sessionData = this.storageService.sessionState();
@@ -80,12 +78,20 @@ export class RoadmapComponent implements OnInit {
     }
 
     private lastScrollTime = 0;
-
     private lastInternalScrollTime = 0;
+    private lastRotationTime = 0;
 
     onWheel(event: WheelEvent): void {
         const total = this.roadmap()?.weeks.length || 0;
         if (total === 0) return;
+
+        const now = Date.now();
+        // 0. BLOCK MOMENTUM AFTER ROTATION
+        if (now - this.lastRotationTime < 1000) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
 
         const delta = event.deltaY;
         const index = this.selectedIndex();
@@ -108,8 +114,6 @@ export class RoadmapComponent implements OnInit {
             const isAtTop = scrollTop <= 0;
             const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 2;
 
-            const now = Date.now();
-
             if (delta > 0) {
                 // Scrolling Down
                 if (!isAtBottom) {
@@ -127,8 +131,6 @@ export class RoadmapComponent implements OnInit {
             }
 
             // AT BOUNDARY:
-            // Check if we *just* finished scrolling internally (< 500ms ago). 
-            // If so, this event is likely the "tail" of the scroll momentum. Block it.
             if (now - this.lastInternalScrollTime < 500) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -148,10 +150,9 @@ export class RoadmapComponent implements OnInit {
         event.stopPropagation();
 
         // 3. Throttle Rotation
-        const now = Date.now();
-        if (now - this.lastScrollTime < 500) return;
+        if (now - this.lastScrollTime < 800) return; // Increased to 800ms
 
-        if (Math.abs(delta) > 10) {
+        if (Math.abs(delta) > 40) { // Increased threshold to ignore minor inertia tails
             this.lastScrollTime = now;
             if (delta > 0) {
                 this.rotate('next');
@@ -162,6 +163,8 @@ export class RoadmapComponent implements OnInit {
     }
 
     rotate(direction: 'next' | 'prev'): void {
+        this.lastRotationTime = Date.now(); // Mark rotation time
+
         const total = this.roadmap()?.weeks.length || 0;
         if (total === 0) return;
 

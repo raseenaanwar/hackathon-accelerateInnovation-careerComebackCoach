@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
 export class RateLimiterService {
     private requestTimestamps: Map<string, number[]> = new Map();
 
-    constructor() { }
+
 
     /**
      * Checks if a request is allowed based on the rate limit.

@@ -1,5 +1,4 @@
-import { Component, OnInit, signal, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, OnDestroy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ElevenLabsService } from '@core/services/elevenlabs.service';
 import { StorageService } from '@core/services/storage.service';
@@ -7,7 +6,7 @@ import { environment } from '@env/environment';
 
 @Component({
     selector: 'app-interview-voice',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './interview-voice.component.html',
     styles: [`
     :host {
@@ -26,11 +25,9 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
 
     private durationInterval?: any;
 
-    constructor(
-        public router: Router,
-        private elevenLabsService: ElevenLabsService,
-        private storageService: StorageService
-    ) { }
+    public router = inject(Router);
+    private elevenLabsService = inject(ElevenLabsService);
+    private storageService = inject(StorageService);
 
     async ngOnInit(): Promise<void> {
         await this.initializeInterview();

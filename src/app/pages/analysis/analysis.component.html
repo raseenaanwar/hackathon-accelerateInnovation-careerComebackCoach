@@ -1,7 +1,8 @@
 <div class="min-h-screen pt-20 sm:pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
         <!-- Loading State -->
-        <div *ngIf="isAnalyzing()" class="text-center animate-slide-up">
+        @if (isAnalyzing()) {
+        <div class="text-center animate-slide-up mt-2">
             <!-- Animated Icon -->
             <div class="w-16 h-16 mx-auto mb-6 relative">
                 <div
@@ -41,7 +42,8 @@
             </div>
 
             <!-- Streaming Analysis Text -->
-            <div *ngIf="streamingText()"
+            @if (streamingText()) {
+            <div
                 class="max-w-2xl mx-auto mb-8 text-left bg-white/50 dark:bg-black/20 rounded-lg p-4 border border-[hsl(var(--color-border))] font-mono text-sm max-h-60 overflow-y-auto shadow-inner animate-fade-in custom-scrollbar">
                 <div
                     class="flex items-center gap-2 mb-2 text-xs font-bold text-[hsl(var(--color-primary))] uppercase tracking-wider">
@@ -51,6 +53,7 @@
                 <div class="whitespace-pre-wrap leading-relaxed text-[hsl(var(--color-text-primary))]">{{
                     streamingText().replace('JSON_DATA:', '') }}</div>
             </div>
+            }
 
             <!-- Loading skeleton -->
             <div class="grid md:grid-cols-2 gap-3 max-w-lg mx-auto">
@@ -60,10 +63,12 @@
                 <div class="h-24 rounded-lg bg-[hsl(var(--color-bg-elevated))] animate-pulse"></div>
             </div>
         </div>
+        }
 
 
         <!-- Error State -->
-        <div *ngIf="!isAnalyzing() && !analysisComplete()" class="text-center animate-slide-up py-10">
+        @if (!isAnalyzing() && !analysisComplete()) {
+        <div class="text-center animate-slide-up py-10">
             <div
                 class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                 <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24"
@@ -78,9 +83,11 @@
             </p>
             <p class="text-sm text-[hsl(var(--color-text-muted))] mb-4">Redirecting you back to try again...</p>
         </div>
+        }
 
         <!-- Results State -->
-        <div *ngIf="analysisComplete()" class="animate-slide-up">
+        @if (analysisComplete()) {
+        <div class="animate-slide-up">
             <!-- Header -->
             <div class="text-center mb-6">
                 <div
@@ -98,7 +105,8 @@
             </div>
 
             <!-- Quick Stats -->
-            <div *ngIf="analysis()" class="grid md:grid-cols-3 gap-4 mb-6">
+            @if (analysis()) {
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
                 <div class="p-4 rounded-xl border border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-elevated))]">
                     <div class="text-2xl font-bold text-gradient mb-1">{{ analysis()!.currentSkills.length }}</div>
                     <p class="text-xs text-[hsl(var(--color-text-muted))]">Current Skills</p>
@@ -112,6 +120,7 @@
                     <p class="text-xs text-[hsl(var(--color-text-muted))]">Week Plan</p>
                 </div>
             </div>
+            }
 
             <!-- Key Insights -->
             <div class="space-y-4 mb-6">
@@ -122,10 +131,12 @@
                         Your Strengths
                     </h3>
                     <div class="flex flex-wrap gap-2">
-                        <span *ngFor="let strength of analysis()?.strengthAreas"
+                        @for (strength of analysis()?.strengthAreas; track $index) {
+                        <span
                             class="px-2.5 py-1 rounded-md bg-[hsl(var(--color-bg-overlay))] text-xs font-medium border border-[hsl(var(--color-border))]">
                             {{ strength }}
                         </span>
+                        }
                     </div>
                 </div>
 
@@ -136,10 +147,12 @@
                         Suggested Roles
                     </h3>
                     <div class="flex flex-wrap gap-2">
-                        <span *ngFor="let role of analysis()?.suggestedRoles"
+                        @for (role of analysis()?.suggestedRoles; track $index) {
+                        <span
                             class="px-3 py-1.5 rounded-md bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] text-white text-xs font-medium">
                             {{ role }}
                         </span>
+                        }
                     </div>
                 </div>
             </div>
@@ -152,5 +165,6 @@
                 </button>
             </div>
         </div>
+        }
     </div>
 </div>

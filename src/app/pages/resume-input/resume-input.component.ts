@@ -1,12 +1,11 @@
-import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StorageService } from '@core/services/storage.service';
 
 @Component({
     selector: 'app-resume-input',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     templateUrl: './resume-input.component.html',
     styles: [`
     :host {
@@ -22,10 +21,8 @@ export class ResumeInputComponent {
     errorMessage = signal<string>('');
     roadmapWeeks = signal<number>(4);
 
-    constructor(
-        private router: Router,
-        private storageService: StorageService
-    ) { }
+    private router = inject(Router);
+    private storageService = inject(StorageService);
 
     setActiveTab(tab: 'upload' | 'text'): void {
         this.activeTab.set(tab);

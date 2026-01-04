@@ -18,28 +18,25 @@
             <!-- Card Item (Always Expanded) -->
             <div class="absolute top-[55%] left-[50%] transition-all duration-500 ease-out backface-hidden flex flex-col gap-1 overflow-hidden
                         bg-white/5 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-4
-                        w-[95%] md:w-[85%] max-w-4xl h-[45vh] -mt-[22.5vh] -ml-[47.5%] md:-ml-[42.5%] z-50"
-                [ngStyle]="getCardTransform(i)">
+                        w-[55vw] md:w-[400px] h-[46vh] sm:h-[45vh] -mt-[23vh] sm:-mt-[22.5vh] -ml-[27.5vw] md:-ml-[200px] z-50"
+                [style]="getCardTransform(i)">
 
                 <!-- Week Header -->
-                <div class="flex justify-between items-start border-b border-white/10 pb-2 flex-none">
-                    <div class="overflow-hidden">
+                <div class="flex justify-between items-start border-b border-white/10 pb-2 flex-none pr-12">
+                    <div class="overflow-hidden w-full">
                         <span class="text-[9px] font-bold uppercase tracking-widest text-blue-400 block">Week {{
                             week.week }}</span>
-                        <h2 class="text-base md:text-lg font-bold text-white leading-tight truncate pr-2">{{ week.title
+                        <h2
+                            class="text-base md:text-lg font-bold text-white leading-tight line-clamp-2 whitespace-normal break-words">
+                            {{
+                            week.title
                             }}</h2>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <div
-                            class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-mono text-gray-400">
-                            {{ week.week }}
-                        </div>
                     </div>
                 </div>
 
                 <!-- Full Content Area -->
                 <div #scrollContainer
-                    class="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar animate-in fade-in duration-300 font-light">
+                    class="flex-1 overflow-y-auto pr-10 space-y-2 custom-scrollbar animate-in fade-in duration-300 font-light">
                     <!-- Goals -->
                     <div>
                         <h3
@@ -47,34 +44,40 @@
                             <span class="w-1 h-1 rounded-full bg-green-400"></span> Goals
                         </h3>
                         <ul class="grid gap-1">
-                            <li *ngFor="let goal of week.goals"
+                            @for (goal of week.goals; track $index) {
+                            <li
                                 class="flex items-start text-[10px] text-gray-200 bg-white/5 p-1.5 rounded border border-white/5 leading-snug">
                                 <span class="text-green-400 mr-1.5 mt-0.5">•</span>
                                 {{ goal }}
                             </li>
+                            }
                         </ul>
                     </div>
 
                     <!-- Topics & Resources -->
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div class="bg-white/5 p-2 rounded border border-white/5">
                             <h3 class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">Topics</h3>
                             <div class="flex flex-wrap gap-1">
-                                <span *ngFor="let topic of week.topics"
+                                @for (topic of week.topics; track $index) {
+                                <span
                                     class="px-1.5 py-0.5 text-[9px] font-medium rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
                                     {{ topic }}
                                 </span>
+                                }
                             </div>
                         </div>
                         <div class="bg-white/5 p-2 rounded border border-white/5">
                             <h3 class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">Res</h3>
                             <ul class="space-y-1">
-                                <li *ngFor="let res of week.resources"
+                                @for (res of week.resources; track $index) {
+                                <li
                                     class="flex items-center text-[9px] text-blue-300 hover:text-blue-200 cursor-pointer truncate">
                                     <span class="mr-1 opacity-50">🔗</span>
                                     <a [href]="res" target="_blank" rel="noopener noreferrer"
                                         class="truncate hover:underline">{{ res }}</a>
                                 </li>
+                                }
                             </ul>
                         </div>
                     </div>
@@ -86,10 +89,12 @@
                             <span class="w-1 h-1 rounded-full bg-purple-400"></span> Hands-on
                         </h3>
                         <div class="space-y-1">
-                            <div *ngFor="let proj of week.projects"
+                            @for (proj of week.projects; track $index) {
+                            <div
                                 class="p-1.5 bg-gradient-to-r from-purple-500/10 to-transparent rounded border-l-2 border-purple-500 text-[10px] text-gray-200 leading-snug">
                                 {{ proj }}
                             </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -99,22 +104,19 @@
         </div>
     </div>
 
-    <!-- Position indicators -->
-    <div class="absolute top-16 left-0 right-0 text-center pointer-events-none z-0 opacity-50">
-        <div
-            class="inline-flex items-center gap-3 px-3 py-1 bg-black/20 rounded-full backdrop-blur text-[9px] text-gray-400 font-mono">
-            <span>{{ selectedIndex() + 1 }} / {{ roadmap()?.weeks?.length }}</span>
-        </div>
-    </div>
-
     <!-- Navigation Controls (Steering) -->
-    <div class="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3">
+    <div class="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-3">
         <button (click)="rotate('prev')" [disabled]="selectedIndex() === 0"
             class="p-2.5 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all backdrop-blur-md border border-white/5">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
             </svg>
         </button>
+
+        <div class="text-[10px] font-bold font-mono text-gray-500 bg-black/40 px-2 py-1 rounded-full backdrop-blur">
+            {{ selectedIndex() + 1 }} / {{ roadmap()?.weeks?.length }}
+        </div>
+
         <button (click)="rotate('next')" [disabled]="selectedIndex() === ((roadmap()?.weeks?.length || 0) - 1)"
             class="p-2.5 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all backdrop-blur-md border border-white/5">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
