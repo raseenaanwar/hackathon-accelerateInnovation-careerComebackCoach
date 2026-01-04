@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+import { environment } from '@env/environment';
 import { GoogleGenAI } from '@google/genai';
+import { RateLimiterService } from './rate-limiter.service';
 
 export interface SkillAnalysis {
   currentSkills: string[];
@@ -8,6 +10,8 @@ export interface SkillAnalysis {
   suggestedRoles: string[];
   strengthAreas: string[];
   improvementAreas: string[];
+  source?: string;
+  error?: string;
 }
 
 export interface RoadmapWeek {
@@ -32,54 +36,207 @@ export interface Roadmap {
 })
 export class GeminiService {
   private genAI: GoogleGenAI;
+  private hasValidKey = false;
 
-  constructor() {
-    // Initialize with API key - Replace with your actual key
-    const apiKey = 'YOUR_GEMINI_API_KEY_HERE';
-    this.genAI = new GoogleGenAI({ apiKey });
+  constructor(private rateLimiter: RateLimiterService) {
+    const apiKey = environment.geminiApiKey;
+    // Check if key is real/valid (simplified check)
+    this.hasValidKey = !!apiKey && apiKey !== 'YOUR_GEMINI_API_KEY' && apiKey.trim() !== '';
+
+    if (this.hasValidKey) {
+      console.log('✨ AI Mode: ONLINE (Using Real Gemini API)');
+      this.genAI = new GoogleGenAI({ apiKey });
+    } else {
+      console.warn('⚠️ AI Mode: OFFLINE (Using Mock Data - No Valid API Key found)');
+      // Initialize with dummy to prevent crash if accessed, though we'll gate usage
+      this.genAI = new GoogleGenAI({ apiKey: 'dummy' });
+    }
   }
 
-  async analyzeResume(resumeText: string): Promise<SkillAnalysis> {
+  async *analyzeResumeStream(resumeText: string): AsyncGenerator<string, SkillAnalysis> {
+    if (!this.hasValidKey) {
+      // Simulate streaming for mock mode
+      const mockData = this.getMockAnalysis();
+      const messages = ["Analyzing resume...", "Identifying skills...", "Generating roadmap..."];
+      for (const msg of messages) {
+        yield msg + "\n";
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      return mockData;
+    }
+
+    const limitKey = 'gemini-analysis';
+    if (!this.rateLimiter.isAllowed(limitKey, 3, 60 * 1000)) {
+      throw new Error('Rate limit exceeded. Please wait a moment.');
+    }
+
     const prompt = `You are a career coach specializing in helping women return to tech careers.
     
-Analyze the following resume/skills and provide a structured assessment:
+    Analyze the following resume/skills. 
+    
+    Phase 1: Provide a brief, encouraging professional summary and analysis of their current standing in natural language (approx 3-4 sentences). Label this section "ANALYSIS:".
+    
+    Phase 2: Provide the structured data in JSON format. Label this section "JSON_DATA:".
 
-Resume/Skills:
-${resumeText}
+    Resume/Skills:
+    (See attached content or text below)
+    
+    Provide your analysis in JSON format with these fields:
+    - currentSkills: Array of currently relevant skills
+    - outdatedSkills: Array of skills that need updating
+    - skillGaps: Array of missing skills for modern tech roles
+    - suggestedRoles: Array of suitable comeback roles
+    - strengthAreas: Array of areas where the candidate is strong
+    - improvementAreas: Array of areas that need work
+    
+    IMPORTANT: If the input provided does not appear to be a resume or a description of professional skills (e.g., if it is gibberish, unrelated text, or too short to be useful), return ONLY this JSON:
+    {
+      "error": "The provided input does not appear to be a valid resume or skills description. Please try again with relevant professional details.",
+      "currentSkills": [],
+      "outdatedSkills": [],
+      "skillGaps": [],
+      "suggestedRoles": [],
+      "strengthAreas": [],
+      "improvementAreas": []
+    }
+    `;
 
-Provide your analysis in JSON format with these fields:
-- currentSkills: Array of currently relevant skills
-- outdatedSkills: Array of skills that need updating
-- skillGaps: Array of missing skills for modern tech roles
-- suggestedRoles: Array of suitable comeback roles
-- strengthAreas: Array of areas where the candidate is strong
-- improvementAreas: Array of areas that need work
+    // Check if input is a file data string
+    const fileMatch = resumeText.match(/^\[FILE_DATA:(.*?):(.*?)\]$/);
+    let parts: any[] = [];
 
-Return ONLY valid JSON, no additional text.`;
+    if (fileMatch) {
+      const mimeType = fileMatch[1];
+      const base64Data = fileMatch[2];
+      parts = [
+        { text: prompt },
+        { inlineData: { mimeType: mimeType, data: base64Data } }
+      ];
+    } else {
+      parts = [{ text: prompt + '\n\nResume/Skills:\n' + resumeText }];
+    }
 
     try {
-      const result = await this.genAI.models.generateContent({
-        model: 'gemini-pro',
-        contents: [{ role: 'user', parts: [{ text: prompt }] }]
+      const result = await this.genAI.models.generateContentStream({
+        model: 'gemini-2.5-flash',
+        contents: [{ role: 'user', parts: parts }]
       });
 
-      const text = result.text || '';
+      let fullText = '';
 
-      // Parse JSON from response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      for await (const chunk of result) {
+        let chunkText = '';
+        const rawText = (chunk as any).text;
+        if (typeof rawText === 'function') {
+          chunkText = rawText.call(chunk);
+        } else {
+          chunkText = rawText || '';
+        }
+
+        if (chunkText) {
+          // console.log('Gemini Stream Chunk:', chunkText.substring(0, 20) + '...');
+          fullText += chunkText;
+          yield chunkText;
+        }
+      }
+
+      // Parse final JSON
+      const jsonMatch = fullText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
 
-      throw new Error('Invalid response format');
+      // Fallback or error if no JSON found
+      throw new Error('No validity JSON found in response');
+
     } catch (error) {
       console.error('Error analyzing resume:', error);
-      // Return mock data as fallback
       return this.getMockAnalysis();
     }
   }
 
+  // Backwards compatibility / non-streaming version if needed (can be removed or kept)
+  async analyzeResume(resumeText: string): Promise<SkillAnalysis> {
+    // Reusing the stream method but just waiting for final result for legacy calls
+    const generator = this.analyzeResumeStream(resumeText);
+    let fullText = '';
+    try {
+      for await (const chunk of generator) {
+        fullText += chunk;
+      }
+      const jsonMatch = fullText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) return JSON.parse(jsonMatch[0]);
+      return this.getMockAnalysis();
+    } catch (e) {
+      console.error('Error in analyzeResume (non-streaming wrapper):', e);
+      return this.getMockAnalysis();
+    }
+  }
+
+  async *chatStream(prompt: string, history: { role: 'user' | 'assistant', content: string }[]): AsyncGenerator<string, string> {
+    if (!this.hasValidKey) {
+      const response = "I am currently in Demo Mode (Offline). I can't generate real-time AI responses, but I'm ready to help once you connect an API key!";
+      const chunks = response.split(' ');
+      for (const chunk of chunks) {
+        yield chunk + ' ';
+        await new Promise(r => setTimeout(r, 50));
+      }
+      return response;
+    }
+
+    // Limit rate
+    if (!this.rateLimiter.isAllowed('gemini-chat', 5, 60 * 1000)) {
+      throw new Error('Rate limit exceeded.');
+    }
+
+    // Convert history to Gemini format
+    // Note: Gemini roles are 'user' and 'model'
+    const historyParts = history.map(h => ({
+      role: h.role === 'user' ? 'user' : 'model',
+      parts: [{ text: h.content }]
+    }));
+
+    try {
+      const chat = this.genAI.chats.create({
+        model: 'gemini-2.5-flash',
+        history: historyParts,
+        config: {
+          maxOutputTokens: 500,
+        }
+      });
+
+      const result = await chat.sendMessageStream({ parts: [{ text: prompt }] } as any);
+
+      let fullResponse = '';
+      for await (const chunk of result) {
+        let chunkText = '';
+        const rawText = (chunk as any).text;
+        // Apply same robust extraction as analysis
+        if (typeof rawText === 'function') {
+          chunkText = rawText.call(chunk);
+        } else {
+          chunkText = rawText || '';
+        }
+
+        if (chunkText) {
+          fullResponse += chunkText;
+          yield chunkText;
+        }
+      }
+      return fullResponse;
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      yield "I'm having trouble connecting right now. Let's try again.";
+      return "Error";
+    }
+  }
+
   async generateRoadmap(analysis: SkillAnalysis, targetWeeks: number = 4): Promise<Roadmap> {
+    if (!this.hasValidKey) {
+      return this.getMockRoadmap();
+    }
+
     const prompt = `You are a career coach creating a ${targetWeeks}-week comeback roadmap for a woman returning to tech.
 
 Based on this skill analysis:
@@ -107,7 +264,7 @@ Focus on modern, in-demand technologies. Use real-time resources. Return ONLY va
 
     try {
       const result = await this.genAI.models.generateContent({
-        model: 'gemini-pro',
+        model: 'gemini-2.5-flash',
         contents: [{ role: 'user', parts: [{ text: prompt }] }]
       });
 
@@ -139,7 +296,8 @@ Focus on modern, in-demand technologies. Use real-time resources. Return ONLY va
       skillGaps: ['TypeScript', 'Modern React (Hooks, Next.js)', 'Tailwind CSS', 'State Management (Redux/Zustand)', 'CI/CD Basics'],
       suggestedRoles: ['Frontend Developer', 'UI Engineer', 'Junior Full Stack Developer'],
       strengthAreas: ['Strong understanding of web fundamentals', 'Experience with version control', 'Problem-solving mindset'],
-      improvementAreas: ['Modern framework ecosystems', 'Type safety (TypeScript)', 'Responsive design patterns']
+      improvementAreas: ['Modern framework ecosystems', 'Type safety (TypeScript)', 'Responsive design patterns'],
+      source: 'mock'
     };
   }
 
@@ -148,6 +306,7 @@ Focus on modern, in-demand technologies. Use real-time resources. Return ONLY va
     // DEMO DATA: Mock roadmap result
     return {
       overallGoal: 'Modern Frontend Developer Career Comeback',
+      source: 'mock',
       estimatedHours: 120,
       weeks: [
         {

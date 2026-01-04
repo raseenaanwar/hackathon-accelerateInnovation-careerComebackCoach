@@ -107,12 +107,18 @@
             @if (activeTab() === 'text') {
             <div class="space-y-3 animate-fade-in">
                 <textarea [(ngModel)]="manualText" id="manual-resume-input" name="manualResumeText"
-                    aria-label="Manual Resume Input" spellcheck="true"
+                    aria-label="Manual Resume Input" spellcheck="true" maxlength="1000"
                     placeholder="Paste your resume or describe your skills, experience, and career goals..."
                     class="w-full h-48 sm:h-40 px-4 py-3 rounded-lg border border-[hsl(var(--color-border))] bg-white/50 dark:bg-black/20 text-[hsl(var(--color-text-primary))] placeholder:text-[hsl(var(--color-text-muted))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-primary))] focus:bg-[hsl(var(--color-bg-base))] transition-all duration-[var(--duration-base)] resize-none shadow-inner text-xs sm:text-sm"></textarea>
-                <p class="text-xs text-[hsl(var(--color-text-muted))] text-center">
-                    Include your skills, previous roles, tech stack, and career gap details for best results.
-                </p>
+                <div class="flex justify-between items-center px-1">
+                    <p class="text-xs text-[hsl(var(--color-text-muted))]">
+                        Include your skills, previous roles, tech stack, and career gap details for best results.
+                    </p>
+                    <p class="text-xs text-[hsl(var(--color-text-muted))]"
+                        [class.text-red-500]="manualText().length >= 1000">
+                        {{ manualText().length }}/1000
+                    </p>
+                </div>
             </div>
             }
 
