@@ -22,7 +22,15 @@ export class ElevenLabsService {
 
     // Helper to check for demo mode
     private isDemoMode(): boolean {
-        return this.API_KEY === 'YOUR_ELEVENLABS_API_KEY' || !this.API_KEY;
+        const isDemo = this.API_KEY === 'YOUR_ELEVENLABS_API_KEY' || !this.API_KEY;
+        if (isDemo) {
+            console.log('ElevenLabsService: Demo Mode Active. Key:', this.API_KEY ? (this.API_KEY.substring(0, 3) + '...') : 'undefined/empty');
+        }
+        return isDemo;
+    }
+
+    public get isConfigured(): boolean {
+        return !this.isDemoMode();
     }
 
     private rateLimiter = inject(RateLimiterService);
@@ -72,7 +80,14 @@ export class ElevenLabsService {
 
             const blob = await response.blob();
             return URL.createObjectURL(blob);
-        } catch (error) {
+        } catch (error: any) {
+            // Check for specific permission errors to avoid spamming the console
+            if (error.message?.includes('permission') || error.message?.includes('Unauthorized') || error.message?.includes('401')) {
+                console.warn('ElevenLabs TTS: Permission/Auth error. Returning silent fallback.');
+                // Return empty string to signal failure gracefully
+                return '';
+            }
+
             console.error('ElevenLabs TTS Error:', error);
             // Fallback to avoid breaking UI flow
             return '';

@@ -109,10 +109,20 @@ export class AnalysisComponent implements OnInit {
             this.isAnalyzing.set(false);
             this.analysisComplete.set(true);
 
+            // Auto-redirect after 3 seconds
+            setTimeout(() => {
+                this.viewRoadmap();
+            }, 3000);
+
         } catch (error) {
             console.error('Error during analysis:', error);
             this.currentStep.set('Analysis failed. Please try again.');
             this.isAnalyzing.set(false);
+
+            // Auto-redirect back to input on failure
+            setTimeout(() => {
+                this.router.navigate(['/resume']);
+            }, 3000);
         }
     }
 

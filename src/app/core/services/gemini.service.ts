@@ -1,7 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { environment } from '@env/environment';
 import { GoogleGenAI } from '@google/genai';
 import { RateLimiterService } from './rate-limiter.service';
+import { MOCK_SKILL_ANALYSIS, MOCK_ROADMAP } from '../data/mock-data';
 
 export interface SkillAnalysis {
   currentSkills: string[];
@@ -38,10 +39,31 @@ export class GeminiService {
   private genAI: GoogleGenAI;
   private hasValidKey = false;
 
+  public get isConfigured(): boolean {
+    return this.hasValidKey;
+  }
+
+  // ============================================================================================
+  // GLOBAL DEMO SWITCH
+  // Toggle this signal to 'false' to enable Production Mode (Real API calls)
+  // When 'true', the app uses MOCK DATA for resume analysis, roadmap generation, and chat.
+  // ============================================================================================
+  public isDemoMode = signal(true);
+
   private rateLimiter = inject(RateLimiterService);
 
   constructor() {
     const apiKey = environment.geminiApiKey;
+
+    // Debug logging for API Key detection
+    console.log('GeminiService: Initializing...');
+    console.log('GeminiService: Raw API Key exists?', !!apiKey);
+    if (apiKey) {
+      console.log('GeminiService: Key length:', apiKey.length);
+      console.log('GeminiService: Key starts with:', apiKey.substring(0, 4) + '...');
+      console.log('GeminiService: Key is default placeholder?', apiKey === 'YOUR_GEMINI_API_KEY');
+    }
+
     // Check if key is real/valid (simplified check)
     this.hasValidKey = !!apiKey && apiKey !== 'YOUR_GEMINI_API_KEY' && apiKey.trim() !== '';
 
@@ -50,13 +72,18 @@ export class GeminiService {
       this.genAI = new GoogleGenAI({ apiKey });
     } else {
       console.warn('⚠️ AI Mode: OFFLINE (Using Mock Data - No Valid API Key found)');
+      console.warn('Reason: Key is empty, undefined, or matches default placeholder.');
       // Initialize with dummy to prevent crash if accessed, though we'll gate usage
       this.genAI = new GoogleGenAI({ apiKey: 'dummy' });
     }
   }
 
-  async *analyzeResumeStream(resumeText: string): AsyncGenerator<string, SkillAnalysis> {
-    if (!this.hasValidKey) {
+
+
+
+
+  async * analyzeResumeStream(resumeText: string): AsyncGenerator<string, SkillAnalysis> {
+    if (this.isDemoMode()) { // Controlled Demo Mode
       // Simulate streaming for mock mode
       const mockData = this.getMockAnalysis();
       const messages = ["Analyzing resume...", "Identifying skills...", "Generating roadmap..."];
@@ -64,6 +91,8 @@ export class GeminiService {
         yield msg + "\n";
         await new Promise(resolve => setTimeout(resolve, 500));
       }
+      // Yield the JSON data so it can be parsed by the component
+      yield JSON.stringify(mockData);
       return mockData;
     }
 
@@ -108,8 +137,8 @@ export class GeminiService {
     let parts: any[] = [];
 
     if (fileMatch) {
-      const mimeType = fileMatch[1];
-      const base64Data = fileMatch[2];
+      const mimeType = fileMatch![1]!;
+      const base64Data = fileMatch![2]!;
       parts = [
         { text: prompt },
         { inlineData: { mimeType: mimeType, data: base64Data } }
@@ -145,7 +174,7 @@ export class GeminiService {
       // Parse final JSON
       const jsonMatch = fullText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        return JSON.parse(jsonMatch![0]!);
       }
 
       // Fallback or error if no JSON found
@@ -175,9 +204,9 @@ export class GeminiService {
     }
   }
 
-  async *chatStream(prompt: string, history: { role: 'user' | 'assistant', content: string }[]): AsyncGenerator<string, string> {
-    if (!this.hasValidKey) {
-      const response = "I am currently in Demo Mode (Offline). I can't generate real-time AI responses, but I'm ready to help once you connect an API key!";
+  async * chatStream(prompt: string, history: { role: 'user' | 'assistant', content: string }[]): AsyncGenerator<string, string> {
+    if (this.isDemoMode() || !this.hasValidKey) {
+      const response = "I am currently in Demo Mode. I can't generate real-time AI responses, but I'm ready to help you explore the features!";
       const chunks = response.split(' ');
       for (const chunk of chunks) {
         yield chunk + ' ';
@@ -193,10 +222,17 @@ export class GeminiService {
 
     // Convert history to Gemini format
     // Note: Gemini roles are 'user' and 'model'
-    const historyParts = history.map(h => ({
-      role: h.role === 'user' ? 'user' : 'model',
-      parts: [{ text: h.content }]
-    }));
+    // Ensure content is never empty to prevent "ContentUnion is required" error
+    const historyParts = history.map((h, index) => {
+      let text = h.content;
+      if (!text || text.trim().length === 0) {
+        text = index % 2 === 0 ? '(Empty user input)' : '(No response generated)';
+      }
+      return {
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: text }]
+      };
+    });
 
     try {
       const chat = this.genAI.chats.create({
@@ -207,7 +243,17 @@ export class GeminiService {
         }
       });
 
-      const result = await chat.sendMessageStream({ parts: [{ text: prompt }] } as any);
+      // Log context for debugging
+      // console.log('Gemini Chat Start. History Size:', historyParts.length, 'Prompt:', prompt);
+
+      // Construct a valid Content object
+      const userMessage = {
+        role: 'user',
+        parts: [{ text: prompt }]
+      };
+
+      // Send the Content object directly
+      const result = await chat.sendMessageStream(userMessage as any);
 
       let fullResponse = '';
       for await (const chunk of result) {
@@ -235,7 +281,7 @@ export class GeminiService {
   }
 
   async generateRoadmap(analysis: SkillAnalysis, targetWeeks: number = 4): Promise<Roadmap> {
-    if (!this.hasValidKey) {
+    if (this.isDemoMode()) { // Controlled Demo Mode
       return this.getMockRoadmap();
     }
 
@@ -256,13 +302,16 @@ Create a detailed ${targetWeeks}-week learning roadmap in JSON format:
       "title": "Week title",
       "goals": ["Goal 1", "Goal 2"],
       "topics": ["Topic to learn"],
-      "resources": ["Resource links/names from Google Search"],
-      "projects": ["Hands-on project ideas"]
+      "resources": ["Resource Title|URL (must be valid https link)"],
+      "projects": ["Hands-on project ideas (use **bold** for emphasis)"]
     }
   ]
 }
 
-Focus on modern, in-demand technologies. Use real-time resources. Return ONLY valid JSON.`;
+Focus on modern, in-demand technologies. Use real-time resources. 
+IMPORTANT: For 'resources', you MUST provide a pipe-separated string with the Title and the URL, e.g., "MDN Docs|https://developer.mozilla.org".
+If you cite a specific YouTube video or Article, provide the exact direct URL.
+Return ONLY valid JSON.`;
 
     try {
       const result = await this.genAI.models.generateContent({
@@ -274,7 +323,7 @@ Focus on modern, in-demand technologies. Use real-time resources. Return ONLY va
 
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        return JSON.parse(jsonMatch[0]!);
       }
 
       throw new Error('Invalid response format');
@@ -291,59 +340,11 @@ Focus on modern, in-demand technologies. Use real-time resources. Return ONLY va
 
   private getMockAnalysis(): SkillAnalysis {
     console.log('Using DEMO Skill Analysis Data');
-    // DEMO DATA: Mock analysis result
-    return {
-      currentSkills: ['JavaScript ES5', 'HTML5', 'CSS3', 'Basic React', 'Git'],
-      outdatedSkills: ['jQuery', 'Bootstrap 3', 'Float-based layouts', 'AngularJS 1.x'],
-      skillGaps: ['TypeScript', 'Modern React (Hooks, Next.js)', 'Tailwind CSS', 'State Management (Redux/Zustand)', 'CI/CD Basics'],
-      suggestedRoles: ['Frontend Developer', 'UI Engineer', 'Junior Full Stack Developer'],
-      strengthAreas: ['Strong understanding of web fundamentals', 'Experience with version control', 'Problem-solving mindset'],
-      improvementAreas: ['Modern framework ecosystems', 'Type safety (TypeScript)', 'Responsive design patterns'],
-      source: 'mock'
-    };
+    return MOCK_SKILL_ANALYSIS;
   }
 
   private getMockRoadmap(): Roadmap {
     console.log('Using DEMO Roadmap Data');
-    // DEMO DATA: Mock roadmap result
-    return {
-      overallGoal: 'Modern Frontend Developer Career Comeback',
-      source: 'mock',
-      estimatedHours: 120,
-      weeks: [
-        {
-          week: 1,
-          title: 'Foundation Refresher & Modern Standards',
-          goals: ['Transition from ES5 to ES6+', 'Master semantic HTML', 'Understand modern CSS layouts'],
-          topics: ['Arrow Functions & Destructuring', 'Flexbox & CSS Grid', 'Semantic Web'],
-          resources: ['MDN Web Docs', 'JavaScript.info', 'CSS-Tricks Flexbox Guide'],
-          projects: ['Refactor a legacy landing page to semantic HTML & Flexbox']
-        },
-        {
-          week: 2,
-          title: 'TypeScript & Modern React',
-          goals: ['Understand Type Safety', 'Learn Functional Components', 'Master Hooks'],
-          topics: ['TypeScript Interfaces & Types', 'React useState & useEffect', 'Component Lifecycle'],
-          resources: ['TypeScript Official Handbook', 'React.dev'],
-          projects: ['Build a specialized Todo App with TypeScript and Hooks']
-        },
-        {
-          week: 3,
-          title: 'State Management & Styling',
-          goals: ['Manage complex application state', 'Implement modern styling'],
-          topics: ['Context API vs Redux', 'Tailwind CSS Fundamentals', 'Responsive Design'],
-          resources: ['Tailwind CSS Docs', 'Redux Toolkit Quick Start'],
-          projects: ['Create a Weather Dashboard using public API and Tailwind']
-        },
-        {
-          week: 4,
-          title: 'Deployments & Professional Practices',
-          goals: ['Learn CI/CD pipelines', 'Polish portfolio', 'Mock interviews'],
-          topics: ['Git branching strategies', 'Vercel/Netlify Deployment', 'Code Review Etiquette'],
-          resources: ['GitHub Actions Docs', 'Vercel Deployment Guide'],
-          projects: ['Deploy your Portfolio and Weather App']
-        }
-      ]
-    };
+    return MOCK_ROADMAP;
   }
 }

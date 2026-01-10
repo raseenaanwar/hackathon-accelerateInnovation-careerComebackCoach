@@ -26,7 +26,7 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
     private durationInterval?: any;
 
     public router = inject(Router);
-    private elevenLabsService = inject(ElevenLabsService);
+    public elevenLabsService = inject(ElevenLabsService);
     private storageService = inject(StorageService);
 
     async ngOnInit(): Promise<void> {
@@ -59,13 +59,15 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
                 ? `Interview context: User is preparing for a comeback to tech. Focus areas: ${roadmapData.overallGoal}`
                 : 'General tech interview practice for career comeback.';
 
-            // Get Agent ID from env or param
-            let agentId = providedAgentId || (environment as any).elevenLabsAgentID;
+            // Get Agent ID from env or param (support both ID and Id capitalization)
+            let envAgentId = (environment as any).elevenLabsAgentID || (environment as any).elevenLabsAgentId;
+            let agentId = providedAgentId || envAgentId;
 
             // Check if valid
-            if (!agentId || agentId === 'YOUR_AGENT_ID_HERE') {
-                console.warn('Authentication Warning: No Agent ID provided.');
-                this.connectionStatus.set('missing_config'); // New state for UI
+            // Force check for real configuration explicitly to avoid silent Demo Mode if user wants real interview
+            if (!this.elevenLabsService.isConfigured || !agentId || agentId === 'YOUR_AGENT_ID_HERE') {
+                console.warn('Authentication Warning: No Agent ID provided or Service not configured.');
+                this.connectionStatus.set('missing_config');
                 return;
             }
 

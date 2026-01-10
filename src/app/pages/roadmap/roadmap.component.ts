@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, HostListener, ViewChildren, QueryList, ElementRef, inject } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 
 import { Roadmap } from '@core/services/gemini.service';
@@ -27,12 +28,15 @@ export class RoadmapComponent implements OnInit {
     downloadStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
 
     // 3D Config
+    // 3D Config
     readonly THETA = 90; // Large gap to prevent overlap
-    readonly RADIUS = 400; // Adjusted radius
+    readonly RADIUS = 50; // Small radius for subtle depth
 
     private router = inject(Router);
     private storageService = inject(StorageService);
     private pdfService = inject(PdfService);
+
+    private sanitizer = inject(DomSanitizer);
 
     ngOnInit(): void {
         const sessionData = this.storageService.sessionState();
@@ -209,15 +213,18 @@ export class RoadmapComponent implements OnInit {
 
         // Vertical Drum Effect: Rotate around X axis
         const angle = offset * -this.THETA;
-        const transform = `rotateX(${angle}deg) translateZ(${this.RADIUS}px)`;
+
+        // Push disabled cards back in Z-space to prevent clipping/fighting
+        const zPush = -Math.abs(offset) * 200;
+
+        const transform = `translateZ(${zPush}px) rotateX(${angle}deg) translateZ(${this.RADIUS}px)`;
 
         const dist = Math.abs(offset);
 
-        // With 90deg gap, neighbors are perpendicular (top/bottom)
-        // Hide them almost completely to remove "protrusion"
-        const opacity = dist === 0 ? 1 : (dist <= 1 ? 0.2 : 0);
+        // Opacity transition
+        const opacity = dist === 0 ? 1 : (dist <= 1 ? 0.3 : 0);
 
-        // Only render active and immediate neighbors (faintly)
+        // Only render active and immediate neighbors
         const isVisible = dist <= 1;
 
         return {
@@ -225,7 +232,7 @@ export class RoadmapComponent implements OnInit {
             'opacity': opacity.toString(),
             'pointer-events': dist === 0 ? 'auto' : 'none',
             'visibility': isVisible ? 'visible' : 'hidden',
-            'z-index': (100 - dist).toString()
+            'z-index': (100 - Math.floor(dist * 10)).toString() // Ensure strict Z-order
         };
     }
 
@@ -253,5 +260,39 @@ export class RoadmapComponent implements OnInit {
 
     startInterview(): void {
         this.router.navigate(['/interview/setup']);
+    }
+
+    sanitizeUrl(url: string): SafeUrl {
+        if (!url) return '';
+        // If url doesn't start with http:// or https://, prepend https://
+        let safeUrl = url;
+        if (!/^https?:\/\//i.test(url)) {
+            safeUrl = 'https://' + url;
+        }
+        return this.sanitizer.bypassSecurityTrustUrl(safeUrl);
+    }
+
+    // Process **text** into <strong>text</strong>
+    processText(text: string): any {
+        if (!text) return '';
+        const bolded = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        return this.sanitizer.bypassSecurityTrustHtml(bolded);
+    }
+
+    // Parse "Title|URL" or fallback to Google Search
+    parseResource(res: string): { title: string; url: string } {
+        if (res.includes('|')) {
+            const [title, url] = res.split('|');
+            return { title: title.trim(), url: url.trim() };
+        }
+        // Fallback: If it looks like a URL, use it
+        if (/^https?:\/\//i.test(res) || res.includes('www.')) {
+            return { title: 'External Resource', url: res };
+        }
+        // Fallback: It's just a title, Link to Google Search
+        return {
+            title: res,
+            url: `https://www.google.com/search?q=${encodeURIComponent(res + ' programming')}`
+        };
     }
 }
