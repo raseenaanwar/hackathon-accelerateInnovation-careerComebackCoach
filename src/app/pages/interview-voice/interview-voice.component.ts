@@ -55,6 +55,18 @@ export class InterviewVoiceComponent implements OnInit, OnDestroy {
                 return;
             }
 
+            // CHECK DEMO MODE
+            if (this.storageService.isDemoMode()) {
+                console.log('Voice Interview: Started in Demo Mode (Simulated)');
+                // Simulate connection delay
+                setTimeout(() => {
+                    this.isConnected.set(true);
+                    this.connectionStatus.set('connected');
+                    this.startDurationTimer();
+                }, 1500);
+                return;
+            }
+
             const context = roadmapData
                 ? `Interview context: User is preparing for a comeback to tech. Focus areas: ${roadmapData.overallGoal}`
                 : 'General tech interview practice for career comeback.';

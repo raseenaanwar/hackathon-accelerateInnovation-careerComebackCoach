@@ -1,27 +1,26 @@
-import { Injectable, signal, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Store } from '@ngrx/store';
+import { SessionActions } from '../../store/session/session.actions';
+import { selectSessionState } from '../../store/session/session.selectors';
+import { SessionState } from '../../store/session/session.models';
 
-export interface SessionState {
-    hasActiveSession: boolean;
-    currentStep: 'idle' | 'resume-input' | 'analyzing' | 'roadmap' | 'interview';
-    resumeData?: string;
-    roadmapWeeks?: number;
-    analysisResult?: any;
-    roadmapData?: any;
-    interviewMode?: 'voice' | 'text';
-}
+export type { SessionState };
 
 @Injectable({
     providedIn: 'root'
 })
 export class StorageService {
     private platformId = inject(PLATFORM_ID);
-    private readonly SESSION_KEY = 'ccc-session-state';
-
-    // Session state signal
-    public sessionState = signal<SessionState>(this.loadSessionState());
+    private store = inject(Store);
+    
+    // Session state signal mapped to store
+    public sessionState = this.store.selectSignal(selectSessionState);
 
     constructor() {
+        // Init session (load from storage via effect)
+        this.store.dispatch(SessionActions.initSession());
+
         // Listen for beforeunload to warn user
         if (isPlatformBrowser(this.platformId)) {
             window.addEventListener('beforeunload', (event) => {
@@ -35,47 +34,24 @@ export class StorageService {
         }
     }
 
-    private loadSessionState(): SessionState {
-        try {
-            if (isPlatformBrowser(this.platformId)) {
-                const stored = sessionStorage.getItem(this.SESSION_KEY);
-                if (stored) {
-                    return JSON.parse(stored);
-                }
-            }
-        } catch (error) {
-            console.error('Error loading session state:', error);
-        }
-
-        return {
-            hasActiveSession: false,
-            currentStep: 'idle'
-        };
-    }
-
     public updateSession(updates: Partial<SessionState>): void {
-        const current = this.sessionState();
-        const newState = { ...current, ...updates };
-        this.sessionState.set(newState);
-        if (isPlatformBrowser(this.platformId)) {
-            sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(newState));
-        }
+        this.store.dispatch(SessionActions.updateSession({ updates }));
     }
 
     public clearSession(): void {
-        this.sessionState.set({
-            hasActiveSession: false,
-            currentStep: 'idle'
-        });
-        if (isPlatformBrowser(this.platformId)) {
-            sessionStorage.removeItem(this.SESSION_KEY);
-        }
+        this.store.dispatch(SessionActions.clearSession());
     }
 
     public startSession(step: SessionState['currentStep']): void {
-        this.updateSession({
-            hasActiveSession: true,
-            currentStep: step
-        });
+        this.store.dispatch(SessionActions.startSession({ step }));
+    }
+
+    public setResume(resumeData: string, roadmapWeeks: number): void {
+        this.store.dispatch(SessionActions.setResume({ resumeData, roadmapWeeks }));
+    }
+
+    public isDemoMode(): boolean {
+        const state = this.sessionState();
+        return state.roadmapData?.source === 'Demo Mode' || state.roadmapData?.restoredFrom === 'Dev Mode';
     }
 }

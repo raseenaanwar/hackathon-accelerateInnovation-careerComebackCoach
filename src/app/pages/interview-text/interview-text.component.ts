@@ -173,6 +173,18 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
 
     async playTTS(text: string): Promise<void> {
         if (!this.isBrowser) return;
+
+        // Check for Demo Mode to prevent API calls
+        if (this.storageService.isDemoMode()) {
+            console.log('TTS skipped: Demo Mode Active');
+            this.isSpeaking.set(true);
+            // Simulate speaking duration roughly based on text length
+            setTimeout(() => {
+                this.isSpeaking.set(false);
+            }, Math.min(5000, text.length * 50));
+            return;
+        }
+
         try {
             this.isSpeaking.set(true);
             const audioUrl = await this.elevenLabsService.textToSpeech(text);
