@@ -112,15 +112,8 @@ export class ResumeInputComponent {
             }
         }
 
-        // Clear previous session data to start fresh
-        this.storageService.clearSession();
-
         // Store resume data
-        this.storageService.updateSession({
-            resumeData: resumeText,
-            roadmapWeeks: this.roadmapWeeks(),
-            currentStep: 'resume-input'
-        });
+        this.storageService.setResume(resumeText, this.roadmapWeeks());
         this.storageService.startSession('analyzing');
 
         // Navigate to analysis page

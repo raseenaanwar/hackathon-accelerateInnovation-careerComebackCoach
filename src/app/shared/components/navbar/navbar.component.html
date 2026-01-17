@@ -7,11 +7,21 @@
             <div class="flex items-center gap-3 cursor-pointer group" routerLink="/">
                 <img src="assets/images/logo-icon.jpeg" alt="Logo"
                     class="w-10 h-10 rounded-lg object-cover shadow-md group-hover:scale-105 transition-transform duration-[var(--duration-base)] ring-1 ring-white/10 bg-white">
-                <span
-                    class="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--color-text-primary))] to-[hsl(var(--color-text-secondary))] hidden sm:block group-hover:from-[hsl(var(--color-primary))] group-hover:to-[hsl(var(--color-secondary))] transition-all duration-500">
-                    Career Comeback Coach
-                </span>
-                <span class="text-lg font-bold tracking-tight text-gradient sm:hidden">CCC</span>
+                <div class="relative">
+                    <span
+                        class="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--color-text-primary))] to-[hsl(var(--color-text-secondary))] hidden sm:block group-hover:from-[hsl(var(--color-primary))] group-hover:to-[hsl(var(--color-secondary))] transition-all duration-500">
+                        Career Comeback Coach
+                    </span>
+                    <span class="text-lg font-bold tracking-tight text-gradient sm:hidden">CCC</span>
+
+                    <!-- Demo Indicator -->
+                    @if (isDemoMode) {
+                    <span
+                        class="absolute -top-2 -right-6 px-1.5 py-0.5 rounded-[4px] text-[9px] font-extrabold bg-amber-500 text-white shadow-sm uppercase tracking-wide animate-pulse transform rotate-3">
+                        DEMO
+                    </span>
+                    }
+                </div>
             </div>
 
 

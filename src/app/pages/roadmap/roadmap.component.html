@@ -1,5 +1,5 @@
 <div
-    class="h-[100dvh] w-full overflow-hidden bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#1a1c23] to-[#0f1014] text-white flex flex-col relative font-sans">
+    class="min-h-[100dvh] w-full bg-gray-50 dark:bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] dark:from-[#1a1c23] dark:to-[#0f1014] text-gray-900 dark:text-white flex flex-col relative font-sans transition-colors duration-300">
 
     <!-- Background Accents -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
@@ -7,101 +7,181 @@
         <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px]"></div>
     </div>
 
-    <!-- 3D Carousel Scene (Full Height Centered) -->
-    <div class="flex-1 relative flex items-center justify-center min-h-0 perspective-1000 pt-8"
-        (wheel)="onWheel($event)">
+    <!-- 3D Carousel Scene (Full Height Centered - FIXED to Top) -->
+    <div class="flex-1 relative flex items-start justify-center min-h-0 perspective-1000" (wheel)="onWheel($event)">
         <!-- The Wheel Container -->
-        <div class="relative w-full max-w-2xl h-[35vh] transform-style-3d transition-transform duration-700 ease-out">
+        <div class="relative w-full max-w-2xl transform-style-3d will-change-transform">
 
             @if (roadmap()?.weeks) {
             @for (week of roadmap()?.weeks; track week.week; let i = $index) {
-            <!-- Card Item (Always Expanded) -->
-            <div class="absolute top-[55%] left-[50%] transition-all duration-500 ease-out backface-hidden flex flex-col gap-1 overflow-hidden
-                        bg-white/5 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-4
-                        w-[55vw] md:w-[400px] h-[46vh] sm:h-[45vh] -mt-[23vh] sm:-mt-[22.5vh] -ml-[27.5vw] md:-ml-[200px] z-50"
-                [style]="getCardTransform(i)">
+            <!-- Card Item -->
+            <div class="absolute top-[100px] left-[50%] transition-transform duration-500 ease-out backface-hidden 
+                        flex flex-col bg-white dark:bg-[#0f1115] border border-gray-200 dark:border-white/10 rounded-xl shadow-xl dark:shadow-black/80
+                        w-[95vw] -ml-[47.5vw] md:w-[800px] md:-ml-[400px] h-auto z-50 overflow-hidden group
+                        subpixel-antialiased" [style]="getCardTransform(i)" #cardElement>
 
-                <!-- Week Header -->
-                <div class="flex justify-between items-start border-b border-white/10 pb-2 flex-none pr-12">
-                    <div class="overflow-hidden w-full">
-                        <span class="text-[9px] font-bold uppercase tracking-widest text-blue-400 block">Week {{
-                            week.week }}</span>
+                <div
+                    class="flex-none px-6 py-5 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#161920] flex items-center justify-between z-20">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span
+                                class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
+                                Week {{ week.week }}
+                            </span>
+                            <div class="h-px flex-1 w-8 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
+                            <span class="text-xs text-gray-500 font-mono hidden sm:block">
+                                PHASE {{ i < 2 ? '01' : i < 5 ? '02' : '03' }} </span>
+                        </div>
                         <h2
-                            class="text-base md:text-lg font-bold text-white leading-tight line-clamp-2 whitespace-normal break-words">
-                            {{
-                            week.title
-                            }}</h2>
+                            class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white tracking-tight leading-none">
+                            {{ week.title }}
+                        </h2>
                     </div>
+
                 </div>
 
-                <!-- Full Content Area -->
-                <div #scrollContainer
-                    class="flex-1 overflow-y-auto pr-10 space-y-2 custom-scrollbar animate-in fade-in duration-300 font-light">
-                    <!-- Goals -->
-                    <div>
-                        <h3
-                            class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                            <span class="w-1 h-1 rounded-full bg-green-400"></span> Goals
-                        </h3>
-                        <ul class="grid gap-1">
-                            @for (goal of week.goals; track $index) {
-                            <li
-                                class="flex items-start text-[10px] text-gray-200 bg-white/5 p-1.5 rounded border border-white/5 leading-snug">
-                                <span class="text-green-400 mr-1.5 mt-0.5">•</span>
-                                {{ goal }}
-                            </li>
-                            }
-                        </ul>
-                    </div>
+                <!-- 2. Content -->
+                <div class="flex-1 p-5 md:p-6 bg-white dark:bg-[#0B0C10] pb-32">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 items-stretch">
 
-                    <!-- Topics & Resources -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div class="bg-white/5 p-2 rounded border border-white/5">
-                            <h3 class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">Topics</h3>
-                            <div class="flex flex-wrap gap-1">
-                                @for (topic of week.topics; track $index) {
+                        <!-- Quadrant 1: Objectives -->
+                        <div
+                            class="bg-gray-50 dark:bg-[#13151b] rounded-xl border border-gray-200 dark:border-white/5 p-5 flex flex-col hover:border-gray-300 dark:hover:border-white/10 transition-colors">
+                            <h3
+                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <span
-                                    class="px-1.5 py-0.5 text-[9px] font-medium rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                                    {{ topic }}
-                                </span>
-                                }
-                            </div>
-                        </div>
-                        <div class="bg-white/5 p-2 rounded border border-white/5">
-                            <h3 class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">Res</h3>
-                            <ul class="space-y-1">
-                                @for (res of week.resources; track $index) {
-                                <li
-                                    class="flex items-center text-[9px] text-blue-300 hover:text-blue-200 cursor-pointer truncate">
-                                    <span class="mr-1 opacity-50">🔗</span>
-                                    <a [href]="res" target="_blank" rel="noopener noreferrer"
-                                        class="truncate hover:underline">{{ res }}</a>
+                                    class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                Step 1: Objectives
+                            </h3>
+                            <ul class="space-y-3">
+                                @for (goal of week.goals; track $index) {
+                                <li class="flex items-start text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                                    <span class="text-emerald-500 mr-2.5 mt-1 text-xs">➜</span>
+                                    <span [innerHTML]="processText(goal)"></span>
                                 </li>
                                 }
                             </ul>
                         </div>
-                    </div>
 
-                    <!-- Projects -->
-                    <div>
-                        <h3
-                            class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                            <span class="w-1 h-1 rounded-full bg-purple-400"></span> Hands-on
-                        </h3>
-                        <div class="space-y-1">
-                            @for (proj of week.projects; track $index) {
-                            <div
-                                class="p-1.5 bg-gradient-to-r from-purple-500/10 to-transparent rounded border-l-2 border-purple-500 text-[10px] text-gray-200 leading-snug">
-                                {{ proj }}
+                        <!-- Quadrant 2: Concepts -->
+                        <div
+                            class="bg-gray-50 dark:bg-[#13151b] rounded-xl border border-gray-200 dark:border-white/5 p-5 flex flex-col hover:border-gray-300 dark:hover:border-white/10 transition-colors">
+                            <h3
+                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <span
+                                    class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
+                                Step 2: Core Concepts
+                            </h3>
+                            <div class="flex flex-wrap gap-2 content-start">
+                                @for (topic of week.topics; track $index) {
+                                <span [innerHTML]="processText(topic)"
+                                    class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-200/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-md hover:bg-gray-200 dark:hover:bg-white/10 transition-colors cursor-default whitespace-normal leading-normal">
+                                </span>
+                                }
                             </div>
-                            }
                         </div>
+
+                        <!-- Quadrant 3: Project -->
+                        <div
+                            class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-xl border border-indigo-200 dark:border-indigo-500/20 p-5 flex flex-col relative overflow-hidden group/prj min-h-[140px]">
+                            <div
+                                class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover/prj:bg-indigo-500/20 transition-all">
+                            </div>
+
+                            <h3
+                                class="text-xs font-bold text-indigo-500 dark:text-indigo-300 uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10">
+                                <span
+                                    class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>
+                                Step 3: Hands-on Project
+                            </h3>
+
+                            <div class="relative z-10 space-y-3 flex-1">
+                                @for (proj of week.projects; track $index) {
+                                <div class="mb-2 last:mb-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-100 font-medium leading-relaxed"
+                                        [innerHTML]="processText(proj)"></p>
+                                </div>
+                                }
+                            </div>
+
+                            <div
+                                class="mt-4 pt-3 border-t border-indigo-200 dark:border-indigo-500/20 flex items-center justify-between gap-2 relative z-10">
+                                <div
+                                    class="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400/90 bg-indigo-100 dark:bg-indigo-500/10 px-2.5 py-1 rounded font-mono tracking-wide">
+                                    Est. 4-6 Hours
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quadrant 4: Resources -->
+                        <div
+                            class="bg-gray-50 dark:bg-[#13151b] rounded-xl border border-gray-200 dark:border-white/5 p-5 flex flex-col hover:border-gray-300 dark:hover:border-white/10 transition-colors">
+                            <h3
+                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <span
+                                    class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>
+                                Step 4: Resources
+                            </h3>
+                            <div class="flex flex-col gap-2.5">
+                                @for (res of week.resources; track $index) {
+                                <a [href]="sanitizeUrl(parseResource(res).url)" target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center gap-3 p-2.5 rounded-lg bg-gray-200/50 dark:bg-black/20 hover:bg-gray-200 dark:hover:bg-white/5 border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 transition-all group/link">
+                                    <div
+                                        class="w-8 h-8 rounded-md flex items-center justify-center bg-gray-100 dark:bg-[#1a1d24] text-gray-500 group-hover/link:text-amber-500 dark:group-hover/link:text-amber-400 transition-colors shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div
+                                            class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/link:text-black dark:group-hover/link:text-white truncate">
+                                            {{ parseResource(res).title }}
+                                        </div>
+                                    </div>
+                                    <svg class="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover/link:text-gray-600 dark:group-hover/link:text-white transition-colors"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                                }
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
             }
             }
         </div>
+    </div>
+
+    <!-- Global Floating Action Bar -->
+    <div
+        class="absolute bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 p-1.5 rounded-full bg-white/90 dark:bg-[#161920]/90 border border-gray-200 dark:border-white/10 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-500">
+        <button (click)="downloadPDF()" [disabled]="downloadStatus() !== 'idle'"
+            class="px-5 py-2.5 rounded-full font-semibold text-xs bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-2 disabled:opacity-50 min-w-[140px] justify-center">
+            @if (downloadStatus() === 'loading') {
+            <span class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            } @else {
+            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            }
+            Download Plan
+        </button>
+
+        <button (click)="startInterview()"
+            class="px-5 py-2.5 rounded-full font-bold text-xs bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-all flex items-center gap-2 shadow-lg shadow-black/20 dark:shadow-white/5 min-w-[160px] justify-center">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+            Start Check-in
+        </button>
     </div>
 
     <!-- Navigation Controls (Steering) -->
@@ -122,30 +202,6 @@
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
-        </button>
-    </div>
-
-    <!-- Actions Footer -->
-    <div class="flex-none p-4 z-20 flex justify-center gap-3 bg-gradient-to-t from-[#0f1014]/90 to-transparent">
-        <button (click)="downloadPDF()" [disabled]="downloadStatus() !== 'idle'"
-            class="px-5 py-2.5 rounded-full font-bold text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all backdrop-blur-md flex items-center gap-2">
-            @if (downloadStatus() === 'loading') {
-            <span class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            Saving...
-            } @else {
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Save PDF
-            }
-        </button>
-        <button (click)="startInterview()"
-            class="px-6 py-2.5 rounded-full font-bold text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 hover:shadow-lg shadow-blue-900/20 text-white transition-all transform flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Start Mock Interview
         </button>
     </div>
 

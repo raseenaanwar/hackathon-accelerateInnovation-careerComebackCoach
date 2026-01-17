@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, HostListener, ViewChildren, QueryList, ElementRef, inject } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 
 import { Roadmap } from '@core/services/gemini.service';
@@ -12,8 +13,7 @@ import { PdfService } from '@core/services/pdf.service';
     styles: [`
     :host {
       display: block;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
     }
   `]
 })
@@ -26,13 +26,19 @@ export class RoadmapComponent implements OnInit {
     today = new Date();
     downloadStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
 
+    // View Shift Logic
+    viewOffset = signal<number>(0);
+    @ViewChildren('cardElement') cardElements!: QueryList<ElementRef>;
+
     // 3D Config
     readonly THETA = 90; // Large gap to prevent overlap
-    readonly RADIUS = 400; // Adjusted radius
+    readonly RADIUS = 50; // Small radius for subtle depth
 
     private router = inject(Router);
     private storageService = inject(StorageService);
     private pdfService = inject(PdfService);
+
+    private sanitizer = inject(DomSanitizer);
 
     ngOnInit(): void {
         const sessionData = this.storageService.sessionState();
@@ -68,91 +74,86 @@ export class RoadmapComponent implements OnInit {
 
     // --- Navigation ---
 
-
-
     setIndex(index: number): void {
         const total = this.roadmap()?.weeks.length || 0;
         if (index >= 0 && index < total) {
             this.selectedIndex.set(index);
+            this.viewOffset.set(0);
         }
     }
 
     private lastScrollTime = 0;
-    private lastInternalScrollTime = 0;
     private lastRotationTime = 0;
 
     onWheel(event: WheelEvent): void {
         const total = this.roadmap()?.weeks.length || 0;
         if (total === 0) return;
 
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        if (scrollTop > 0) return;
+
         const now = Date.now();
-        // 0. BLOCK MOMENTUM AFTER ROTATION
-        if (now - this.lastRotationTime < 1000) {
+        if (now - this.lastRotationTime < 200) {
             event.preventDefault();
             event.stopPropagation();
             return;
         }
 
-        const delta = event.deltaY;
         const index = this.selectedIndex();
+        const cardRef = this.cardElements?.get(index);
 
-        // Check if event target is inside the scrollable content of the *active* card
-        let target = event.target as HTMLElement;
-        let scrollContainer: HTMLElement | null = null;
+        if (!cardRef) return;
 
-        while (target && target !== event.currentTarget) {
-            if (target.classList.contains('overflow-y-auto')) {
-                scrollContainer = target;
-                break;
-            }
-            target = target.parentElement as HTMLElement;
-        }
+        const rect = cardRef.nativeElement.getBoundingClientRect();
+        const delta = event.deltaY;
+        const currentOffset = this.viewOffset();
 
-        if (scrollContainer) {
-            const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
-            // More forgiving 'bottom' check
-            const isAtTop = scrollTop <= 0;
-            const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 2;
+        // Target: We want the bottom of the card to be at (WindowHeight - 30px)
+        const TARGET_BOTTOM = window.innerHeight - 30;
 
-            if (delta > 0) {
-                // Scrolling Down
-                if (!isAtBottom) {
-                    this.lastInternalScrollTime = now; // Track that we successfully scrolled internally
-                    event.stopPropagation();
-                    return;
-                }
-            } else {
-                // Scrolling Up
-                if (!isAtTop) {
-                    this.lastInternalScrollTime = now; // Track that we successfully scrolled internally
-                    event.stopPropagation();
-                    return;
-                }
-            }
+        // BUFFER: Precision buffer to prevent flickering at the boundary
+        const BUFFER = 5;
 
-            // AT BOUNDARY:
-            if (now - this.lastInternalScrollTime < 500) {
+        if (delta > 0) {
+            // SCROLL DOWN -> Lift Card Up
+
+            // If the card's bottom is still visually below the target line
+            if (rect.bottom > TARGET_BOTTOM + BUFFER) {
                 event.preventDefault();
                 event.stopPropagation();
+
+                // Increase offset to lift card
+                this.viewOffset.update(v => v + delta);
+                return;
+            }
+
+            // If we fall through, it means rect.bottom <= TARGET_BOTTOM
+            // Card is fully lifted. Now we can rotate.
+
+            if (index === total - 1) return;
+
+        } else {
+            // SCROLL UP -> Drop Card Down
+
+            if (currentOffset > 0) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Decrease offset to drop card
+                this.viewOffset.update(v => Math.max(0, v + delta));
                 return;
             }
         }
 
-        // --- CAROUSEL ROTATION LOGIC ---
+        // --- ROTATION ---
+        if (delta < 0 && index === 0) return;
 
-        // 1. Boundary Checks: Allow default page scrolling if at edges of carousel
-        if ((delta < 0 && index === 0) || (delta > 0 && index === total - 1)) {
-            return;
-        }
-
-        // 2. Prevent default page scroll
         event.preventDefault();
         event.stopPropagation();
 
-        // 3. Throttle Rotation
-        if (now - this.lastScrollTime < 800) return; // Increased to 800ms
+        if (now - this.lastScrollTime < 300) return;
 
-        if (Math.abs(delta) > 40) { // Increased threshold to ignore minor inertia tails
+        if (Math.abs(delta) > 30) {
             this.lastScrollTime = now;
             if (delta > 0) {
                 this.rotate('next');
@@ -163,7 +164,7 @@ export class RoadmapComponent implements OnInit {
     }
 
     rotate(direction: 'next' | 'prev'): void {
-        this.lastRotationTime = Date.now(); // Mark rotation time
+        this.lastRotationTime = Date.now();
 
         const total = this.roadmap()?.weeks.length || 0;
         if (total === 0) return;
@@ -179,16 +180,7 @@ export class RoadmapComponent implements OnInit {
 
         if (nextIndex !== current) {
             this.selectedIndex.set(nextIndex);
-
-            // Reset scroll position for the new card
-            // Use setTimeout to allow any potential view updates, though with signals it might be synchronous or microtask based.
-            // Direct DOM access is safe here.
-            setTimeout(() => {
-                const container = this.scrollContainers?.get(nextIndex);
-                if (container) {
-                    container.nativeElement.scrollTop = 0;
-                }
-            }, 0);
+            this.viewOffset.set(0); // Reset offset on week change
         }
     }
 
@@ -207,17 +199,36 @@ export class RoadmapComponent implements OnInit {
         const selected = this.selectedIndex();
         const offset = index - selected;
 
+        // Optimization: If active card, use simple 2D transform to avoid blurriness
+        if (offset === 0) {
+            return {
+                'position': 'relative',
+                'left': '0',
+                'margin-left': 'auto',
+                'margin-right': 'auto',
+                'transform': `translateZ(0) scale(1) translateY(${-this.viewOffset()}px)`, // Apply scroll shift
+                'opacity': '1',
+                'pointer-events': 'auto',
+                'visibility': 'visible',
+                'z-index': '100',
+                'filter': 'none' // Ensure no inherited filters
+            };
+        }
+
         // Vertical Drum Effect: Rotate around X axis
         const angle = offset * -this.THETA;
-        const transform = `rotateX(${angle}deg) translateZ(${this.RADIUS}px)`;
+
+        // Push disabled cards back in Z-space to prevent clipping/fighting
+        const zPush = -Math.abs(offset) * 200;
+
+        const transform = `translateZ(${zPush}px) rotateX(${angle}deg) translateZ(${this.RADIUS}px)`;
 
         const dist = Math.abs(offset);
 
-        // With 90deg gap, neighbors are perpendicular (top/bottom)
-        // Hide them almost completely to remove "protrusion"
-        const opacity = dist === 0 ? 1 : (dist <= 1 ? 0.2 : 0);
+        // Opacity transition
+        const opacity = dist === 0 ? 1 : (dist <= 1 ? 0.3 : 0);
 
-        // Only render active and immediate neighbors (faintly)
+        // Only render active and immediate neighbors
         const isVisible = dist <= 1;
 
         return {
@@ -225,7 +236,7 @@ export class RoadmapComponent implements OnInit {
             'opacity': opacity.toString(),
             'pointer-events': dist === 0 ? 'auto' : 'none',
             'visibility': isVisible ? 'visible' : 'hidden',
-            'z-index': (100 - dist).toString()
+            'z-index': (100 - Math.floor(dist * 10)).toString()
         };
     }
 
@@ -253,5 +264,39 @@ export class RoadmapComponent implements OnInit {
 
     startInterview(): void {
         this.router.navigate(['/interview/setup']);
+    }
+
+    sanitizeUrl(url: string): SafeUrl {
+        if (!url) return '';
+        // If url doesn't start with http:// or https://, prepend https://
+        let safeUrl = url;
+        if (!/^https?:\/\//i.test(url)) {
+            safeUrl = 'https://' + url;
+        }
+        return this.sanitizer.bypassSecurityTrustUrl(safeUrl);
+    }
+
+    // Process **text** into <strong>text</strong>
+    processText(text: string): any {
+        if (!text) return '';
+        const bolded = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        return this.sanitizer.bypassSecurityTrustHtml(bolded);
+    }
+
+    // Parse "Title|URL" or fallback to Google Search
+    parseResource(res: string): { title: string; url: string } {
+        if (res.includes('|')) {
+            const [title, url] = res.split('|');
+            return { title: title.trim(), url: url.trim() };
+        }
+        // Fallback: If it looks like a URL, use it
+        if (/^https?:\/\//i.test(res) || res.includes('www.')) {
+            return { title: 'External Resource', url: res };
+        }
+        // Fallback: It's just a title, Link to Google Search
+        return {
+            title: res,
+            url: `https://www.google.com/search?q=${encodeURIComponent(res + ' programming')}`
+        };
     }
 }

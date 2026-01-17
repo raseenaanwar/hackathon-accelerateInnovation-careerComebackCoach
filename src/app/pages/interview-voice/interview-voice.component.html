@@ -32,10 +32,18 @@
                 <span class="text-2xl">🤖</span>
                 <h3 class="text-xl font-bold">Setup Voice Agent</h3>
             </div>
-            <p class="text-sm text-[hsl(var(--color-text-secondary))] mb-5 leading-relaxed">
-                To use the real conversational AI, please enter your ElevenLabs Agent ID below. You can find this in
-                your ElevenLabs dashboard.
-            </p>
+            <div class="text-sm text-[hsl(var(--color-text-secondary))] mb-5 leading-relaxed space-y-2">
+                @if (!elevenLabsService.isConfigured) {
+                <div
+                    class="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg text-amber-600 dark:text-amber-400">
+                    <strong>Missing API Key:</strong> Please configure <code>elevenLabsApiKey</code> in
+                    <code>src/environments/environment.ts</code> first.
+                </div>
+                }
+                <p>
+                    Please ensure your correct <strong>Agent ID</strong> is set below or in your environment file.
+                </p>
+            </div>
 
             <div class="space-y-4">
                 <input type="text" [value]="agentIdInput()" (input)="agentIdInput.set($any($event.target).value)"

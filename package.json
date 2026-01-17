@@ -38,6 +38,9 @@
     "@angular/router": "^20.3.0",
     "@angular/ssr": "^20.3.2",
     "@google/genai": "^1.34.0",
+    "@ngrx/effects": "^21.0.1",
+    "@ngrx/store": "^21.0.1",
+    "@ngrx/store-devtools": "^21.0.1",
     "express": "^5.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"

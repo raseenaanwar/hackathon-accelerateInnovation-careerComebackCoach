@@ -34,7 +34,7 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
     private shouldScrollToBottom = false;
 
     private router = inject(Router);
-    private geminiService = inject(GeminiService);
+    public geminiService = inject(GeminiService);
     private storageService = inject(StorageService);
     private elevenLabsService = inject(ElevenLabsService);
     private platformId = inject(PLATFORM_ID);
@@ -115,11 +115,17 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
             // Add placeholder for assistant message
             this.addMessage('assistant', '');
 
-            // Get conversation history for context
-            const history = this.messages().slice(0, -1).map(m => ({
+            // Get conversation history for context (exclude the current user message and the placeholder)
+            // We slice -2 because:
+            // - Last message is the Assistant Placeholder (empty)
+            // - Second to last is the User Message we just added (which we are sending as 'prompt' now)
+            const history = this.messages().slice(0, -2).filter(m => m.content && m.content.trim().length > 0).map(m => ({
                 role: m.role,
                 content: m.content
             }));
+
+            // Debugging what we are sending
+            // console.log('Chat Context:', { prompt: input, historyLength: history.length });
 
             const prompt = `You are conducting a technical interview. \n\nCandidate's response: ${input}\n\nProvide a thoughtful, short follow-up or feedback (max 3 sentences).`;
 
@@ -136,7 +142,7 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
                     if (newMsgs.length > 0) {
                         newMsgs[newMsgs.length - 1] = {
                             ...newMsgs[newMsgs.length - 1],
-                            content: fullResponse
+                            content: fullResponse || 'Thinking...' // Avoid empty content flicker
                         };
                     }
                     return newMsgs;
@@ -167,6 +173,18 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
 
     async playTTS(text: string): Promise<void> {
         if (!this.isBrowser) return;
+
+        // Check for Demo Mode to prevent API calls
+        if (this.storageService.isDemoMode()) {
+            console.log('TTS skipped: Demo Mode Active');
+            this.isSpeaking.set(true);
+            // Simulate speaking duration roughly based on text length
+            setTimeout(() => {
+                this.isSpeaking.set(false);
+            }, Math.min(5000, text.length * 50));
+            return;
+        }
+
         try {
             this.isSpeaking.set(true);
             const audioUrl = await this.elevenLabsService.textToSpeech(text);
@@ -177,11 +195,15 @@ export class InterviewTextComponent implements OnInit, AfterViewChecked {
             } else {
                 this.isSpeaking.set(false);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.warn('TTS playback failed:', error);
             this.isSpeaking.set(false);
-            // Optionally disable TTS if it fails due to auth
-            // this.useTTS.set(false);
+
+            // Auto-disable TTS if we hit a permission or auth error
+            if (error.message?.includes('permission') || error.message?.includes('Unauthorized') || error.message?.includes('401')) {
+                this.useTTS.set(false);
+                this.addMessage('assistant', '⚠️ System: Text-to-Speech has been disabled. Your API Key seems to be missing the "text_to_speech" permission.');
+            }
         }
     }
 

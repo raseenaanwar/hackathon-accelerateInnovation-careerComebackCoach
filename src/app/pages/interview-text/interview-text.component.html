@@ -11,13 +11,24 @@
                 <div>
                     <h1 class="text-base font-bold leading-tight">Mock Interview</h1>
                     <div class="flex items-center space-x-2 text-xs text-[hsl(var(--color-text-muted))]">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                        <span>Online</span>
+                        <span class="w-1.5 h-1.5 rounded-full" 
+                            [class.bg-green-500]="geminiService.isConfigured" 
+                            [class.bg-amber-500]="!geminiService.isConfigured"
+                            [class.animate-pulse]="geminiService.isConfigured">
+                        </span>
+                        <span>{{ geminiService.isConfigured ? 'Online' : 'Demo Mode' }}</span>
                         <span>•</span>
                         <span>Time Left: {{ formatDuration(duration()) }}</span>
                     </div>
                 </div>
             </div>
+            
+            <!-- Missing Key Banner (Absolute or pushed) - Putting it in top flow might be cleaner but let's stick to simple -->
+            @if (!geminiService.isConfigured) {
+               <div class="absolute top-full left-0 w-full bg-amber-100 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800 px-4 py-1.5 text-center text-xs text-amber-800 dark:text-amber-200 z-0">
+                   <strong>Demo Mode:</strong> Configure keys in <code>src/environments/environment.ts</code> to enable AI.
+               </div>
+            }
             <div class="flex items-center space-x-3">
                 <!-- Read Aloud Toggle -->
                 <button (click)="useTTS.set(!useTTS())"
