@@ -18,9 +18,6 @@ export class StorageService {
     public sessionState = this.store.selectSignal(selectSessionState);
 
     constructor() {
-        // Init session (load from storage via effect)
-        this.store.dispatch(SessionActions.initSession());
-
         // Listen for beforeunload to warn user
         if (isPlatformBrowser(this.platformId)) {
             window.addEventListener('beforeunload', (event) => {

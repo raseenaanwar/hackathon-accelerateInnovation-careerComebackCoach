@@ -202,6 +202,10 @@ export class RoadmapComponent implements OnInit {
         // Optimization: If active card, use simple 2D transform to avoid blurriness
         if (offset === 0) {
             return {
+                'position': 'relative',
+                'left': '0',
+                'margin-left': 'auto',
+                'margin-right': 'auto',
                 'transform': `translateZ(0) scale(1) translateY(${-this.viewOffset()}px)`, // Apply scroll shift
                 'opacity': '1',
                 'pointer-events': 'auto',

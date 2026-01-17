@@ -9,10 +9,6 @@ export const initialState: SessionState = {
 
 export const sessionReducer = createReducer(
     initialState,
-    on(SessionActions.loadSessionSuccess, (state, { state: loadedState }) => ({
-        ...state,
-        ...loadedState
-    })),
     on(SessionActions.startSession, (state, { step }) => ({
         ...state,
         hasActiveSession: true,
